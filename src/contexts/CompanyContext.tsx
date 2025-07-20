@@ -1,14 +1,17 @@
 
 import React, { createContext, useContext, ReactNode } from 'react';
 import { Company } from '../types/company';
-import { useCompanyActions } from '../hooks/useCompanyActions';
+import { useSupabaseCompanies } from '../hooks/useSupabaseCompanies';
 
 interface CompanyContextType {
   companies: Company[];
-  addCompany: (company: Omit<Company, 'id'>) => void;
-  updateCompany: (id: string, updates: Partial<Company>) => void;
-  deleteCompany: (id: string) => void;
+  loading: boolean;
+  error: string | null;
+  addCompany: (company: Omit<Company, 'id'>) => Promise<void>;
+  updateCompany: (id: string, updates: Partial<Company>) => Promise<void>;
+  deleteCompany: (id: string) => Promise<void>;
   getCompaniesByCollaborator: (collaboratorId: string) => Company[];
+  refetch: () => Promise<void>;
 }
 
 const CompanyContext = createContext<CompanyContextType | undefined>(undefined);
@@ -24,19 +27,25 @@ export const useCompanies = () => {
 export const CompanyProvider = ({ children }: { children: ReactNode }) => {
   const {
     companies,
+    loading,
+    error,
     addCompany,
     updateCompany,
     deleteCompany,
-    getCompaniesByCollaborator
-  } = useCompanyActions();
+    getCompaniesByCollaborator,
+    refetch
+  } = useSupabaseCompanies();
 
   return (
     <CompanyContext.Provider value={{
       companies,
+      loading,
+      error,
       addCompany,
       updateCompany,
       deleteCompany,
-      getCompaniesByCollaborator
+      getCompaniesByCollaborator,
+      refetch
     }}>
       {children}
     </CompanyContext.Provider>

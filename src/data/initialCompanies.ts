@@ -9,21 +9,20 @@ export const initialCompanies: Company[] = [
     complexityLevel: 'High',
     clientClass: 'VIP',
     taxRegime: 'Lucro Real',
-    segment: 'INFORMÁTICA',
-    collaboratorIds: ['3'],
-    sectorResponsibles: {
-      fiscal: '2',
-      pessoal: '3',
-      contabil: '2',
-      financeiro: '2'
-    },
+    newTaxRegime: 'LUCRO REAL',
     group: 'GRUPO SOARES',
     classification: 'AVANÇADO',
     municipality: 'IMPERATRIZ',
-    newTaxRegime: 'LUCRO REAL',
     situation: 'COM MOVIMENTO',
     honoraryValue: 2500.00,
-    companySector: 'SERVIÇOS'
+    companySector: 'SERVIÇOS',
+    segment: 'INFORMÁTICA',
+    collaboratorIds: ['3'],
+    sectorResponsibles: {
+      fiscal: 'Gerente Fiscal',
+      pessoal: 'Colaborador',
+      contabil: 'Administrador'
+    }
   },
   {
     id: '2',
@@ -32,157 +31,105 @@ export const initialCompanies: Company[] = [
     complexityLevel: 'Medium',
     clientClass: 'Executive',
     taxRegime: 'Simples Nacional',
-    segment: 'CONSULTORIA',
-    collaboratorIds: ['3'],
-    sectorResponsibles: {
-      fiscal: '2',
-      pessoal: '3',
-      contabil: '2',
-      financeiro: '2'
-    },
+    newTaxRegime: 'SIMPLES NACIONAL',
     group: 'GRUPO CARLOS ALBERTO',
     classification: 'ESSENCIAL',
     municipality: 'BARRA DO CORDA',
-    newTaxRegime: 'SIMPLES NACIONAL',
     situation: 'COM MOVIMENTO',
     honoraryValue: 1800.00,
-    companySector: 'SERVIÇOS'
+    companySector: 'SERVIÇOS',
+    segment: 'CONSULTORIA',
+    collaboratorIds: ['3'],
+    sectorResponsibles: {
+      fiscal: 'Gerente Fiscal',
+      pessoal: 'Colaborador',
+      contabil: 'Administrador'
+    }
   },
   {
     id: '3',
-    name: 'Financial Services',
+    name: 'Comércio Central Ltda',
     taxId: '11.222.333/0001-44',
     complexityLevel: 'Low',
-    clientClass: 'Diamond',
-    taxRegime: 'Lucro Presumido',
-    segment: 'CORRETORA',
-    collaboratorIds: [],
-    sectorResponsibles: {
-      fiscal: '2',
-      contabil: '2',
-      financeiro: '2'
-    },
-    group: 'GRUPO RAMOS',
-    classification: 'MASTER',
+    clientClass: 'Executive',
+    taxRegime: 'Simples Nacional',
+    newTaxRegime: 'SIMPLES NACIONAL',
+    group: 'GRUPO BRUNA',
+    classification: 'BÁSICO',
     municipality: 'GRAJAÚ',
-    newTaxRegime: 'LUCRO PRESUMIDO',
     situation: 'COM MOVIMENTO',
-    honoraryValue: 3200.00,
-    companySector: 'SERVIÇOS'
+    honoraryValue: 1200.00,
+    companySector: 'COMÉRCIO',
+    segment: 'SUPERMERCADO',
+    collaboratorIds: ['2'],
+    sectorResponsibles: {
+      fiscal: 'Gerente Fiscal',
+      contabil: 'Administrador'
+    }
   },
   {
     id: '4',
-    name: 'Indústria Metalúrgica',
-    taxId: '44.555.666/0001-77',
-    complexityLevel: 'High',
-    clientClass: 'VIP',
-    taxRegime: 'Lucro Real',
-    segment: 'METALURGIA',
-    collaboratorIds: ['3'],
-    sectorResponsibles: {
-      fiscal: '2',
-      pessoal: '3',
-      contabil: '2',
-      financeiro: '2'
-    },
-    group: 'GRUPO INDUSTRIAL',
-    classification: 'MASTER',
-    municipality: 'IMPERATRIZ',
-    newTaxRegime: 'LUCRO REAL',
-    situation: 'COM MOVIMENTO',
-    honoraryValue: 4500.00,
-    companySector: 'INDÚSTRIA'
-  },
-  {
-    id: '5',
-    name: 'Comércio Varejista',
+    name: 'Construção & Cia',
     taxId: '55.666.777/0001-88',
-    complexityLevel: 'Medium',
-    clientClass: 'Executive',
-    taxRegime: 'Simples Nacional',
-    segment: 'VAREJO',
-    collaboratorIds: ['3'],
-    sectorResponsibles: {
-      fiscal: '2',
-      pessoal: '3',
-      contabil: '2',
-      financeiro: '2'
-    },
-    group: 'GRUPO COMERCIAL',
-    classification: 'ESSENCIAL',
-    municipality: 'BARRA DO CORDA',
-    newTaxRegime: 'SIMPLES NACIONAL',
-    situation: 'COM MOVIMENTO',
-    honoraryValue: 1200.00,
-    companySector: 'COMÉRCIO'
-  },
-  {
-    id: '6',
-    name: 'Construção Civil Ltda',
-    taxId: '66.777.888/0001-99',
     complexityLevel: 'High',
     clientClass: 'Diamond',
     taxRegime: 'Lucro Presumido',
-    segment: 'CONSTRUÇÃO',
-    collaboratorIds: ['3'],
-    sectorResponsibles: {
-      fiscal: '2',
-      pessoal: '3',
-      contabil: '2',
-      financeiro: '2'
-    },
-    group: 'GRUPO CONSTRUÇÃO',
-    classification: 'AVANÇADO',
-    municipality: 'GRAJAÚ',
     newTaxRegime: 'LUCRO PRESUMIDO',
+    group: 'GRUPO FRANCO CONSTRUÇÕES',
+    classification: 'MASTER',
+    municipality: 'IMPERATRIZ',
     situation: 'COM MOVIMENTO',
-    honoraryValue: 3800.00,
-    companySector: 'CONSTRUÇÃO'
+    honoraryValue: 3500.00,
+    companySector: 'CONSTRUÇÃO CIVIL',
+    segment: 'MATERIAIS DE CONSTRUÇÃO',
+    collaboratorIds: ['1', '2'],
+    sectorResponsibles: {
+      fiscal: 'Administrador',
+      pessoal: 'Gerente Fiscal',
+      contabil: 'Administrador'
+    }
   },
   {
-    id: '7',
+    id: '5',
     name: 'Agropecuária Verde',
-    taxId: '77.888.999/0001-11',
+    taxId: '99.888.777/0001-66',
+    complexityLevel: 'Medium',
+    clientClass: 'VIP',
+    taxRegime: 'Lucro Presumido',
+    newTaxRegime: 'LUCRO PRESUMIDO',
+    group: 'GRUPO AGRICOLA GROENER',
+    classification: 'AVANÇADO',
+    municipality: 'AMARANTE DO MARANHÃO',
+    situation: 'COM MOVIMENTO',
+    honoraryValue: 2200.00,
+    companySector: 'AGRONEGÓCIO',
+    segment: 'PECUÁRIA',
+    collaboratorIds: ['2', '3'],
+    sectorResponsibles: {
+      fiscal: 'Gerente Fiscal',
+      pessoal: 'Colaborador',
+      contabil: 'Administrador'
+    }
+  },
+  {
+    id: '6',
+    name: 'Transportes Rápidos',
+    taxId: '33.444.555/0001-22',
     complexityLevel: 'Medium',
     clientClass: 'Executive',
     taxRegime: 'Simples Nacional',
-    segment: 'AGRICULTURA',
-    collaboratorIds: ['3'],
-    sectorResponsibles: {
-      fiscal: '2',
-      pessoal: '3',
-      contabil: '2',
-      financeiro: '2'
-    },
-    group: 'GRUPO AGRO',
-    classification: 'ESSENCIAL',
-    municipality: 'IMPERATRIZ',
     newTaxRegime: 'SIMPLES NACIONAL',
+    group: 'GRUPO TRUCKAUTO',
+    classification: 'ESSENCIAL',
+    municipality: 'BURITIRANA',
     situation: 'COM MOVIMENTO',
-    honoraryValue: 2200.00,
-    companySector: 'AGRICULTURA'
-  },
-  {
-    id: '8',
-    name: 'Transportes Rápidos',
-    taxId: '88.999.000/0001-22',
-    complexityLevel: 'Low',
-    clientClass: 'VIP',
-    taxRegime: 'Lucro Real',
-    segment: 'TRANSPORTE',
+    honoraryValue: 1600.00,
+    companySector: 'TRANSPORTE',
+    segment: 'TRANSPORTADORA',
     collaboratorIds: ['3'],
     sectorResponsibles: {
-      fiscal: '2',
-      pessoal: '3',
-      contabil: '2',
-      financeiro: '2'
-    },
-    group: 'GRUPO TRANSPORTE',
-    classification: 'BÁSICO',
-    municipality: 'BARRA DO CORDA',
-    newTaxRegime: 'LUCRO REAL',
-    situation: 'COM MOVIMENTO',
-    honoraryValue: 2800.00,
-    companySector: 'SERVIÇOS'
+      fiscal: 'Gerente Fiscal',
+      contabil: 'Administrador'
+    }
   }
 ];
