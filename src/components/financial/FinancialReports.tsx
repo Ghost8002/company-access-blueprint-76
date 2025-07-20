@@ -13,6 +13,7 @@ import { MonthlyRevenueChart } from './charts/MonthlyRevenueChart';
 import { CompanyValueTable } from './CompanyValueTable';
 import { SectorSegmentAnalysisChart } from './charts/SectorSegmentAnalysisChart';
 import { AdvancedAnalyticsChart } from './charts/AdvancedAnalyticsChart';
+import { formatCurrency } from '../../utils/formatters';
 
 interface ExportData {
   'Nome da Empresa': string;
@@ -113,7 +114,7 @@ export const FinancialReports = () => {
                         <div>
                           <p className="text-sm font-medium text-blue-600">Receita Total</p>
                           <p className="text-2xl font-bold text-blue-800">
-                            R$ {totalRevenue.toLocaleString('pt-BR')}
+                            {formatCurrency(totalRevenue)}
                           </p>
                           <p className="text-xs text-blue-600 mt-1">
                             {companiesWithValue.length} empresas ativas
@@ -132,7 +133,7 @@ export const FinancialReports = () => {
                         <div>
                           <p className="text-sm font-medium text-green-600">Ticket Médio</p>
                           <p className="text-2xl font-bold text-green-800">
-                            R$ {averageValue.toLocaleString('pt-BR')}
+                            {formatCurrency(averageValue)}
                           </p>
                           <p className="text-xs text-green-600 mt-1">
                             Valor por empresa
@@ -151,7 +152,7 @@ export const FinancialReports = () => {
                         <div>
                           <p className="text-sm font-medium text-purple-600">Maior Cliente</p>
                           <p className="text-2xl font-bold text-purple-800">
-                            R$ {highestValue.toLocaleString('pt-BR')}
+                            {formatCurrency(highestValue)}
                           </p>
                           <p className="text-xs text-purple-600 mt-1">
                             Valor individual
@@ -219,7 +220,7 @@ export const FinancialReports = () => {
                           <div key={regime} className="text-center p-4 bg-gray-50 rounded-lg">
                             <h4 className="font-semibold text-gray-800 mb-2">{regime}</h4>
                             <p className="text-2xl font-bold text-green-600">
-                              R$ {data.totalValue.toLocaleString('pt-BR')}
+                              {formatCurrency(data.totalValue)}
                             </p>
                             <p className="text-sm text-gray-600">
                               {data.count} empresa{data.count > 1 ? 's' : ''}
@@ -275,14 +276,14 @@ export const FinancialReports = () => {
                            averageValue > 20000 ? 'Médio' : 'Baixo'}
                         </p>
                         <p className="text-xs text-purple-600 mt-1">
-                          R$ {averageValue.toLocaleString('pt-BR')}
+                          {formatCurrency(averageValue)}
                         </p>
                       </div>
 
                       <div className="text-center p-4 bg-orange-50 rounded-lg border border-orange-200">
                         <h4 className="font-semibold text-orange-800 mb-2">Projeção 12m</h4>
                         <p className="text-2xl font-bold text-orange-600">
-                          R$ {(totalRevenue * 1.15).toLocaleString('pt-BR')}
+                          {formatCurrency(totalRevenue * 1.15)}
                         </p>
                         <p className="text-xs text-orange-600 mt-1">
                           +15% crescimento esperado

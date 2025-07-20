@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Search, Download } from 'lucide-react';
 import { useExcelExport } from '../../hooks/useExcelExport';
 import { getSectorColor } from '../companies/table/utils/colorUtils';
+import { formatCurrency } from '../../utils/formatters';
 
 interface CompanyValueTableProps {
   companies: Company[];
@@ -129,11 +130,8 @@ export const CompanyValueTable = ({ companies }: CompanyValueTableProps) => {
                     </Badge>
                   </TableCell>
                   <TableCell>{company.municipality || 'Não informado'}</TableCell>
-                  <TableCell className="text-right font-bold">
-                    {new Intl.NumberFormat('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL'
-                    }).format(company.honoraryValue || 0)}
+                  <TableCell className="text-right font-bold text-green-600">
+                    {formatCurrency(company.honoraryValue)}
                   </TableCell>
                 </TableRow>
               ))}
@@ -152,10 +150,7 @@ export const CompanyValueTable = ({ companies }: CompanyValueTableProps) => {
                   <TableCell className="font-bold text-blue-800">-</TableCell>
                   <TableCell className="font-bold text-blue-800">-</TableCell>
                   <TableCell className="text-right font-bold text-green-600 text-lg">
-                    {new Intl.NumberFormat('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL'
-                    }).format(sortedCompanies.reduce((sum, company) => sum + (company.honoraryValue || 0), 0))}
+                    {formatCurrency(sortedCompanies.reduce((sum, company) => sum + (company.honoraryValue || 0), 0))}
                   </TableCell>
                 </TableRow>
               )}

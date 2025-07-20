@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -7,6 +6,7 @@ import { Company, CompanySector, ComplexityLevel, CompanyGroup, CompanyClassific
 import { useAuth } from '../../../contexts/AuthContext';
 import { Column } from './utils/columnConfig';
 import { getTaxRegimeColor, getSituationColor, getClassificationColor, getComplexityColor, getSectorColor } from './utils/colorUtils';
+import { formatCurrency, parseCurrencyInput } from '../../../utils/formatters';
 
 interface CellRendererProps {
   company: Company;
@@ -28,7 +28,7 @@ export const CellRenderer = ({ company, column, isEditing, editData, setEditData
 
   const handleHonoraryValueChange = (value: string) => {
     console.log('Alterando valor honorário:', value);
-    const numericValue = value === '' ? undefined : parseFloat(value.replace(',', '.'));
+    const numericValue = parseCurrencyInput(value);
     console.log('Valor numérico convertido:', numericValue);
     setEditData({ ...editData, honoraryValue: numericValue });
   };
@@ -251,17 +251,17 @@ export const CellRenderer = ({ company, column, isEditing, editData, setEditData
       return isEditing ? (
         <Input
           type="text"
-          value={editData.honoraryValue?.toString() || ''}
+          value={editData.honoraryValue ? formatCurrency(editData.honoraryValue) : ''}
           onChange={(e) => handleHonoraryValueChange(e.target.value)}
           className="w-full h-8 text-sm"
-          placeholder="0.00"
+          placeholder="R$ 0,00"
           onBlur={(e) => {
             console.log('Valor final ao sair do campo:', e.target.value);
           }}
         />
       ) : (
-        <span className="text-sm font-mono">
-          {company.honoraryValue ? `R$ ${company.honoraryValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-'}
+        <span className="text-sm font-mono text-green-600 font-semibold">
+          {formatCurrency(company.honoraryValue)}
         </span>
       );
 

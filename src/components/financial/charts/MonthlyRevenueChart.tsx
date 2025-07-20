@@ -5,6 +5,7 @@ import { MacOSCardAnimated } from '@/components/ui/macos-card-animated';
 import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Company } from '../../../types/company';
 import { MacOSFade } from '@/components/ui/macos-animations';
+import { formatCurrency } from '../../../utils/formatters';
 
 interface MonthlyRevenueChartProps {
   companies: Company[];
@@ -43,21 +44,11 @@ export const MonthlyRevenueChart = ({ companies }: MonthlyRevenueChartProps) => 
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis 
-                tickFormatter={(value) => 
-                  new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0
-                  }).format(value)
-                }
+                tickFormatter={(value) => formatCurrency(value).replace('R$ ', 'R$')}
               />
               <Tooltip 
                 formatter={(value) => [
-                  new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL'
-                  }).format(value as number),
+                  formatCurrency(value as number),
                   'Receita'
                 ]}
               />
