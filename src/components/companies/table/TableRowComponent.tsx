@@ -5,7 +5,7 @@ import { Company } from '../../../types/company';
 import { Column } from './utils/columnConfig';
 import { CellRenderer } from './CellRenderer';
 import { EditActions } from './EditActions';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useState } from 'react';
 import { useCompanies } from '../../../contexts/CompanyContext';
 
@@ -93,6 +93,9 @@ export const TableRowComponent = ({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Alertas da Empresa</DialogTitle>
+            <DialogDescription>
+              Gerencie os alertas e problemas relacionados à empresa {company.name}.
+            </DialogDescription>
           </DialogHeader>
           {company.alerts && company.alerts.length > 0 ? (
             <ul className="list-disc pl-5 space-y-1">
