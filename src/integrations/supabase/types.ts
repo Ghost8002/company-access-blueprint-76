@@ -14,7 +14,111 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      companies: {
+        Row: {
+          alerts: string[] | null
+          classification: string | null
+          client_class: string | null
+          company_group: string | null
+          company_sector: string | null
+          complexity_level: string | null
+          contabil_responsible: string | null
+          cpf: string | null
+          created_at: string
+          financeiro_responsible: string | null
+          fiscal_responsible: string | null
+          honorary_value: number | null
+          id: string
+          municipality: string | null
+          name: string
+          new_tax_regime: string | null
+          pessoal_responsible: string | null
+          segment: string | null
+          situation: string | null
+          tax_id: string | null
+          tax_regime: string
+          updated_at: string
+        }
+        Insert: {
+          alerts?: string[] | null
+          classification?: string | null
+          client_class?: string | null
+          company_group?: string | null
+          company_sector?: string | null
+          complexity_level?: string | null
+          contabil_responsible?: string | null
+          cpf?: string | null
+          created_at?: string
+          financeiro_responsible?: string | null
+          fiscal_responsible?: string | null
+          honorary_value?: number | null
+          id?: string
+          municipality?: string | null
+          name: string
+          new_tax_regime?: string | null
+          pessoal_responsible?: string | null
+          segment?: string | null
+          situation?: string | null
+          tax_id?: string | null
+          tax_regime?: string
+          updated_at?: string
+        }
+        Update: {
+          alerts?: string[] | null
+          classification?: string | null
+          client_class?: string | null
+          company_group?: string | null
+          company_sector?: string | null
+          complexity_level?: string | null
+          contabil_responsible?: string | null
+          cpf?: string | null
+          created_at?: string
+          financeiro_responsible?: string | null
+          fiscal_responsible?: string | null
+          honorary_value?: number | null
+          id?: string
+          municipality?: string | null
+          name?: string
+          new_tax_regime?: string | null
+          pessoal_responsible?: string | null
+          segment?: string | null
+          situation?: string | null
+          tax_id?: string | null
+          tax_regime?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          role: string
+          sector: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id: string
+          name: string
+          role: string
+          sector?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          role?: string
+          sector?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
