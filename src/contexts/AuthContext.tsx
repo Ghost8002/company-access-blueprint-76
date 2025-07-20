@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 export type UserRole = 'root' | 'manager' | 'collaborator';
 export type Sector = 'fiscal' | 'pessoal' | 'contabil' | 'financeiro';
@@ -50,6 +51,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { user: supabaseUser, isAuthenticated: supabaseAuth, signIn, signOut, signUp } = useSupabaseAuth();
   const [localUser, setLocalUser] = useState<User | null>(null);
   const [isLocalAuth, setIsLocalAuth] = useState(false);
+  const [supabaseUserProfile, setSupabaseUserProfile] = useState<User | null>(null);
 
   // Users array for local authentication
   const users: User[] = [
@@ -61,6 +63,46 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       role: 'root' 
     }
   ];
+
+  // Fetch user profile from Supabase when user is authenticated
+  useEffect(() => {
+    const fetchSupabaseUserProfile = async () => {
+      if (supabaseUser && supabaseAuth) {
+        try {
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', supabaseUser.id)
+            .single();
+
+          if (error) {
+            console.error('Error fetching user profile:', error);
+            return;
+          }
+
+          if (profile) {
+            setSupabaseUserProfile({
+              id: profile.id,
+              name: profile.name,
+              username: profile.email,
+              passwordHash: '',
+              role: profile.role as UserRole,
+              sector: profile.sector as Sector || undefined
+            });
+            console.log('Supabase user profile loaded:', profile.name, 'Role:', profile.role);
+          }
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+        }
+      } else {
+        setSupabaseUserProfile(null);
+      }
+    };
+
+    if (supabaseUser && supabaseAuth) {
+      fetchSupabaseUserProfile();
+    }
+  }, [supabaseUser, supabaseAuth]);
 
   // Check for stored local session on mount
   useEffect(() => {
@@ -79,14 +121,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   // Determine current user and auth status
-  const user: User | null = localUser || (supabaseUser ? {
-    id: supabaseUser.id,
-    name: supabaseUser.email?.split('@')[0] || 'User',
-    username: supabaseUser.email || '',
-    passwordHash: '',
-    role: 'manager' // Default role for authenticated users
-  } : null);
-
+  const user: User | null = localUser || supabaseUserProfile;
   const isAuthenticated = isLocalAuth || supabaseAuth;
 
   const login = async (username: string, password: string): Promise<boolean> => {
@@ -136,6 +171,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Clear local authentication
       setLocalUser(null);
       setIsLocalAuth(false);
+      setSupabaseUserProfile(null);
       localStorage.removeItem('localUser');
       console.log('Logout successful');
     } catch (error) {
@@ -160,7 +196,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return false;
   };
 
-  console.log('Auth state:', { isAuthenticated, isLocalAuth, supabaseAuth, userName: user?.name });
+  console.log('Auth state:', { 
+    isAuthenticated, 
+    isLocalAuth, 
+    supabaseAuth, 
+    userName: user?.name,
+    userRole: user?.role
+  });
 
   return (
     <AuthContext.Provider value={{
