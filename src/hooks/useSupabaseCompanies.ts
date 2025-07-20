@@ -18,6 +18,10 @@ export const useSupabaseCompanies = () => {
       setLoading(true);
       console.log('Fetching companies from Supabase...');
       
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('Current user:', user?.id ? 'Authenticated' : 'Not authenticated');
+      
       const { data, error } = await supabase
         .from('companies')
         .select('*')
@@ -70,6 +74,12 @@ export const useSupabaseCompanies = () => {
     try {
       console.log('Adding new company:', newCompany.name);
       
+      // Check authentication before proceeding
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('Usuário não autenticado');
+      }
+      
       const insertData: CompanyInsert = {
         name: newCompany.name,
         tax_id: newCompany.taxId || null,
@@ -91,6 +101,8 @@ export const useSupabaseCompanies = () => {
         financeiro_responsible: newCompany.sectorResponsibles?.financeiro || null,
         alerts: newCompany.alerts || null
       };
+
+      console.log('Insert data:', insertData);
 
       const { data, error } = await supabase
         .from('companies')
@@ -115,6 +127,12 @@ export const useSupabaseCompanies = () => {
   const updateCompany = async (id: string, updates: Partial<Company>) => {
     try {
       console.log('Updating company:', id, updates);
+      
+      // Check authentication before proceeding
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('Usuário não autenticado');
+      }
       
       const updateData: CompanyUpdate = {
         name: updates.name,
@@ -161,6 +179,12 @@ export const useSupabaseCompanies = () => {
   const deleteCompany = async (id: string) => {
     try {
       console.log('Deleting company:', id);
+      
+      // Check authentication before proceeding
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('Usuário não autenticado');
+      }
       
       const { error } = await supabase
         .from('companies')

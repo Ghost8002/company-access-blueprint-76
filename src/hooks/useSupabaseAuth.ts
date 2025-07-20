@@ -1,68 +1,29 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { User } from '@supabase/supabase-js';
-
-export interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  role: 'root' | 'manager' | 'collaborator';
-  sector?: 'fiscal' | 'pessoal' | 'contabil' | 'financeiro';
-  created_at: string;
-  updated_at: string;
-}
+import { User, Session } from '@supabase/supabase-js';
 
 export const useSupabaseAuth = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) throw error;
-      
-      // Type the database response properly
-      if (data) {
-        setProfile({
-          id: data.id,
-          name: data.name,
-          email: data.email,
-          role: data.role as 'root' | 'manager' | 'collaborator',
-          sector: data.sector as 'fiscal' | 'pessoal' | 'contabil' | 'financeiro' | undefined,
-          created_at: data.created_at,
-          updated_at: data.updated_at
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    }
-  };
-
   useEffect(() => {
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id ? 'User logged in' : 'User logged out');
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
+    );
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session:', session?.user?.id ? 'User logged in' : 'No session');
+      setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id);
-      }
-      setLoading(false);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await fetchProfile(session.user.id);
-      } else {
-        setProfile(null);
-      }
       setLoading(false);
     });
 
@@ -70,62 +31,77 @@ export const useSupabaseAuth = () => {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { data, error };
+    try {
+      console.log('Attempting sign in for:', email);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        console.error('Sign in error:', error);
+        throw error;
+      }
+
+      console.log('Sign in successful');
+      return { data, error: null };
+    } catch (error) {
+      console.error('Sign in failed:', error);
+      return { data: null, error };
+    }
   };
 
-  const signUp = async (email: string, password: string, name: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          name,
-        },
-      },
-    });
-    return { data, error };
+  const signUp = async (email: string, password: string) => {
+    try {
+      console.log('Attempting sign up for:', email);
+      const redirectUrl = `${window.location.origin}/`;
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl
+        }
+      });
+
+      if (error) {
+        console.error('Sign up error:', error);
+        throw error;
+      }
+
+      console.log('Sign up successful');
+      return { data, error: null };
+    } catch (error) {
+      console.error('Sign up failed:', error);
+      return { data: null, error };
+    }
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    return { error };
-  };
+    try {
+      console.log('Signing out...');
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Sign out error:', error);
+        throw error;
+      }
 
-  const updateProfile = async (updates: Partial<UserProfile>) => {
-    if (!user) return { error: new Error('No user logged in') };
-
-    const { data, error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('id', user.id)
-      .select()
-      .single();
-
-    if (!error && data) {
-      setProfile({
-        id: data.id,
-        name: data.name,
-        email: data.email,
-        role: data.role as 'root' | 'manager' | 'collaborator',
-        sector: data.sector as 'fiscal' | 'pessoal' | 'contabil' | 'financeiro' | undefined,
-        created_at: data.created_at,
-        updated_at: data.updated_at
-      });
+      console.log('Sign out successful');
+      return { error: null };
+    } catch (error) {
+      console.error('Sign out failed:', error);
+      return { error };
     }
-
-    return { data, error };
   };
 
   return {
-    user: profile ? { ...user, ...profile } : null,
+    user,
+    session,
     loading,
     signIn,
     signUp,
     signOut,
-    updateProfile,
+    isAuthenticated: !!user,
   };
 };

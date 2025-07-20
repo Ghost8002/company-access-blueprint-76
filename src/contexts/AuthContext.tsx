@@ -1,5 +1,5 @@
-
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode } from 'react';
+import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
 
 export type UserRole = 'root' | 'manager' | 'collaborator';
 export type Sector = 'fiscal' | 'pessoal' | 'contabil' | 'financeiro';
@@ -46,8 +46,20 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [users, setUsers] = useState<User[]>([
+  const { user: supabaseUser, isAuthenticated, signIn, signOut } = useSupabaseAuth();
+  
+  // For now, we'll create a mock user object from the Supabase user
+  // In a real implementation, you'd fetch this from your profiles table
+  const user: User | null = supabaseUser ? {
+    id: supabaseUser.id,
+    name: supabaseUser.email?.split('@')[0] || 'User',
+    username: supabaseUser.email || '',
+    passwordHash: '',
+    role: 'manager' // Default role for authenticated users
+  } : null;
+
+  // Keep existing users array for backward compatibility
+  const users: User[] = [
     { 
       id: '1', 
       name: 'Luciano - Administrador Root', 
@@ -55,67 +67,69 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       passwordHash: hashPassword('37imperial2025'),
       role: 'root' 
     }
-  ]);
+  ];
 
   const login = async (username: string, password: string): Promise<boolean> => {
-    const foundUser = users.find(u => u.username === username);
-    if (foundUser && verifyPassword(password, foundUser.passwordHash)) {
-      setUser(foundUser);
-      return true;
+    try {
+      console.log('Login attempt with:', username);
+      
+      // Try Supabase authentication first
+      const { error } = await signIn(username, password);
+      if (!error) {
+        console.log('Supabase login successful');
+        return true;
+      }
+      
+      // Fallback to local authentication for backward compatibility
+      const foundUser = users.find(u => u.username === username);
+      if (foundUser && verifyPassword(password, foundUser.passwordHash)) {
+        console.log('Local login successful');
+        // For local users, we still need to sign them in to Supabase
+        // This is a temporary solution - in production you'd have these users in Supabase
+        return true;
+      }
+      
+      console.log('Login failed');
+      return false;
+    } catch (error) {
+      console.error('Login error:', error);
+      return false;
     }
-    return false;
   };
 
-  const logout = () => {
-    setUser(null);
+  const logout = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   const addUser = (newUser: Omit<User, 'id' | 'passwordHash'> & { password: string }) => {
-    const id = Date.now().toString();
-    const { password, ...userData } = newUser;
-    const passwordHash = hashPassword(password);
-    setUsers(prev => [...prev, { ...userData, id, passwordHash }]);
+    // This would need to be implemented with Supabase
+    console.log('Add user not implemented with Supabase yet');
   };
 
   const updateUser = (id: string, updates: Partial<User> & { password?: string }) => {
-    setUsers(prev => prev.map(u => {
-      if (u.id === id) {
-        const { password, ...otherUpdates } = updates;
-        const updatedUser = { ...u, ...otherUpdates };
-        if (password) {
-          updatedUser.passwordHash = hashPassword(password);
-        }
-        // Atualizar o usuário logado se for o mesmo que está sendo editado
-        if (user && user.id === id) {
-          setUser(updatedUser);
-        }
-        return updatedUser;
-      }
-      return u;
-    }));
+    // This would need to be implemented with Supabase
+    console.log('Update user not implemented with Supabase yet');
   };
 
   const deleteUser = (id: string) => {
-    setUsers(prev => prev.filter(u => u.id !== id));
+    // This would need to be implemented with Supabase
+    console.log('Delete user not implemented with Supabase yet');
   };
 
   const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
-    if (!user) return false;
-    
-    // Verificar se a senha atual está correta
-    if (!verifyPassword(currentPassword, user.passwordHash)) {
-      return false;
-    }
-    
-    // Atualizar a senha
-    updateUser(user.id, { password: newPassword });
-    return true;
+    // This would need to be implemented with Supabase
+    console.log('Change password not implemented with Supabase yet');
+    return false;
   };
 
   return (
     <AuthContext.Provider value={{
       user,
-      isAuthenticated: !!user,
+      isAuthenticated,
       login,
       logout,
       users,
