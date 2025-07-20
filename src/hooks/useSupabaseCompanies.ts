@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Company } from '../types/company';
+import { Company, ComplexityLevel, ClientClass, TaxRegime, NewTaxRegime, CompanyGroup, CompanyClassification, CompanyMunicipality, CompanySituation, CompanySector, CompanySegment } from '../types/company';
 import type { Database } from '@/integrations/supabase/types';
 
 type CompanyRow = Database['public']['Tables']['companies']['Row'];
@@ -35,23 +35,23 @@ export const useSupabaseCompanies = () => {
         name: company.name,
         taxId: company.tax_id || '',
         cpf: company.cpf || '',
-        complexityLevel: company.complexity_level || '',
-        clientClass: company.client_class || '',
-        taxRegime: company.tax_regime || 'Simples Nacional',
-        newTaxRegime: company.new_tax_regime || '',
-        group: company.company_group || '',
-        classification: company.classification || '',
-        municipality: company.municipality || '',
-        situation: company.situation || '',
+        complexityLevel: company.complexity_level as ComplexityLevel || undefined,
+        clientClass: company.client_class as ClientClass || undefined,
+        taxRegime: (company.tax_regime || 'Simples Nacional') as TaxRegime,
+        newTaxRegime: company.new_tax_regime as NewTaxRegime || undefined,
+        group: company.company_group as CompanyGroup || undefined,
+        classification: company.classification as CompanyClassification || undefined,
+        municipality: company.municipality as CompanyMunicipality || undefined,
+        situation: company.situation as CompanySituation || undefined,
         honoraryValue: company.honorary_value || 0,
-        companySector: company.company_sector || '',
-        segment: company.segment || '',
+        companySector: company.company_sector as CompanySector || undefined,
+        segment: company.segment as CompanySegment || undefined,
         collaboratorIds: [], // Will be populated by junction table
         sectorResponsibles: {
-          fiscal: company.fiscal_responsible || '',
-          pessoal: company.pessoal_responsible || '',
-          contabil: company.contabil_responsible || '',
-          financeiro: company.financeiro_responsible || ''
+          fiscal: company.fiscal_responsible || undefined,
+          pessoal: company.pessoal_responsible || undefined,
+          contabil: company.contabil_responsible || undefined,
+          financeiro: company.financeiro_responsible || undefined
         },
         alerts: company.alerts || []
       }));

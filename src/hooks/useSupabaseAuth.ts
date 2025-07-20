@@ -27,7 +27,19 @@ export const useSupabaseAuth = () => {
         .single();
 
       if (error) throw error;
-      setProfile(data);
+      
+      // Type the database response properly
+      if (data) {
+        setProfile({
+          id: data.id,
+          name: data.name,
+          email: data.email,
+          role: data.role as 'root' | 'manager' | 'collaborator',
+          sector: data.sector as 'fiscal' | 'pessoal' | 'contabil' | 'financeiro' | undefined,
+          created_at: data.created_at,
+          updated_at: data.updated_at
+        });
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
@@ -94,7 +106,15 @@ export const useSupabaseAuth = () => {
       .single();
 
     if (!error && data) {
-      setProfile(data);
+      setProfile({
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        role: data.role as 'root' | 'manager' | 'collaborator',
+        sector: data.sector as 'fiscal' | 'pessoal' | 'contabil' | 'financeiro' | undefined,
+        created_at: data.created_at,
+        updated_at: data.updated_at
+      });
     }
 
     return { data, error };
