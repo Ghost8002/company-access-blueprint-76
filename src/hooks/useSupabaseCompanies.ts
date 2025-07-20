@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Company, ComplexityLevel, ClientClass, TaxRegime, NewTaxRegime, CompanyGroup, CompanyClassification, CompanyMunicipality, CompanySituation, CompanySector, CompanySegment } from '../types/company';
 import type { Database } from '@/integrations/supabase/types';
+import { useAuth } from '../contexts/AuthContext';
 
 type CompanyRow = Database['public']['Tables']['companies']['Row'];
 type CompanyInsert = Database['public']['Tables']['companies']['Insert'];
@@ -12,15 +13,31 @@ export const useSupabaseCompanies = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isAuthenticated } = useAuth();
 
   const fetchCompanies = async () => {
     try {
       setLoading(true);
       console.log('Fetching companies from Supabase...');
       
-      // Check if user is authenticated
+      // Check if user is authenticated (local or Supabase)
+      if (!isAuthenticated) {
+        console.log('User not authenticated, skipping fetch');
+        setCompanies([]);
+        setError(null);
+        return;
+      }
+      
       const { data: { user } } = await supabase.auth.getUser();
       console.log('Current user:', user?.id ? 'Authenticated' : 'Not authenticated');
+      
+      // If no Supabase user but we're authenticated locally, return empty array for now
+      if (!user) {
+        console.log('No Supabase user found, but locally authenticated - returning empty companies list');
+        setCompanies([]);
+        setError(null);
+        return;
+      }
       
       const { data, error } = await supabase
         .from('companies')
@@ -74,10 +91,16 @@ export const useSupabaseCompanies = () => {
     try {
       console.log('Adding new company:', newCompany.name);
       
-      // Check authentication before proceeding
+      // Check if user is authenticated (local or Supabase)
+      if (!isAuthenticated) {
+        throw new Error('Usuário não autenticado');
+      }
+      
+      // Check for Supabase authentication
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        throw new Error('Usuário não autenticado');
+        console.log('No Supabase user - this operation requires Supabase authentication');
+        throw new Error('Esta operação requer autenticação via Supabase. Por favor, faça login com email/senha.');
       }
       
       const insertData: CompanyInsert = {
@@ -128,10 +151,16 @@ export const useSupabaseCompanies = () => {
     try {
       console.log('Updating company:', id, updates);
       
-      // Check authentication before proceeding
+      // Check if user is authenticated (local or Supabase)
+      if (!isAuthenticated) {
+        throw new Error('Usuário não autenticado');
+      }
+      
+      // Check for Supabase authentication
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        throw new Error('Usuário não autenticado');
+        console.log('No Supabase user - this operation requires Supabase authentication');
+        throw new Error('Esta operação requer autenticação via Supabase. Por favor, faça login com email/senha.');
       }
       
       const updateData: CompanyUpdate = {
@@ -180,10 +209,16 @@ export const useSupabaseCompanies = () => {
     try {
       console.log('Deleting company:', id);
       
-      // Check authentication before proceeding
+      // Check if user is authenticated (local or Supabase)
+      if (!isAuthenticated) {
+        throw new Error('Usuário não autenticado');
+      }
+      
+      // Check for Supabase authentication
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        throw new Error('Usuário não autenticado');
+        console.log('No Supabase user - this operation requires Supabase authentication');
+        throw new Error('Esta operação requer autenticação via Supabase. Por favor, faça login com email/senha.');
       }
       
       const { error } = await supabase
@@ -211,8 +246,13 @@ export const useSupabaseCompanies = () => {
   };
 
   useEffect(() => {
-    fetchCompanies();
-  }, []);
+    if (isAuthenticated) {
+      fetchCompanies();
+    } else {
+      setCompanies([]);
+      setLoading(false);
+    }
+  }, [isAuthenticated]);
 
   return {
     companies,
