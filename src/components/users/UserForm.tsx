@@ -53,7 +53,16 @@ export const UserForm = ({ user, onClose }: UserFormProps) => {
   };
 
   const requiresSector = formData.role === 'manager' || formData.role === 'collaborator';
-  const canManageUserCreation = currentUser?.role === 'root';
+  
+  // Verificar se o usuário atual pode gerenciar permissões de usuários
+  const canManageUserCreation = () => {
+    return currentUser?.role === 'root' || currentUser?.username === 'salesdesouzamatheus@gmail.com';
+  };
+
+  // Verificar se o usuário atual pode alterar níveis
+  const canChangeUserLevels = () => {
+    return currentUser?.role === 'root' || currentUser?.username === 'salesdesouzamatheus@gmail.com';
+  };
 
   return (
     <div className="space-y-6">
@@ -124,6 +133,7 @@ export const UserForm = ({ user, onClose }: UserFormProps) => {
                     sector: value === 'root' ? '' : formData.sector,
                     canCreateUsers: value === 'root' ? false : formData.canCreateUsers
                   })}
+                  disabled={!canChangeUserLevels()}
                 >
                   <SelectTrigger className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white">
                     <SelectValue placeholder="Selecione a função" />
@@ -131,11 +141,16 @@ export const UserForm = ({ user, onClose }: UserFormProps) => {
                   <SelectContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
                     <SelectItem value="collaborator" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">Colaborador</SelectItem>
                     <SelectItem value="manager" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">Gerente</SelectItem>
-                    {canManageUserCreation && (
+                    {canManageUserCreation() && (
                       <SelectItem value="root" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">Administrador Root</SelectItem>
                     )}
                   </SelectContent>
                 </Select>
+                {!canChangeUserLevels() && (
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Você não tem permissão para alterar o nível do usuário
+                  </p>
+                )}
               </div>
 
               {requiresSector && (
@@ -159,7 +174,7 @@ export const UserForm = ({ user, onClose }: UserFormProps) => {
                 </div>
               )}
 
-              {formData.role === 'manager' && canManageUserCreation && (
+              {formData.role === 'manager' && canManageUserCreation() && (
                 <div className="space-y-3 col-span-2">
                   <Label className="text-gray-700 dark:text-gray-300">Permissões do Gerente</Label>
                   <div className="flex items-center space-x-2">

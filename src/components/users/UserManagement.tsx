@@ -26,7 +26,14 @@ export const UserManagement = () => {
   const canCreateUsers = () => {
     if (user?.role === 'root') return true;
     if (user?.role === 'manager' && user?.canCreateUsers) return true;
+    // Verificar se é o usuário especial que pode alterar níveis
+    if (user?.username === 'salesdesouzamatheus@gmail.com') return true;
     return false;
+  };
+
+  const canManageUserLevels = () => {
+    // Apenas o usuário especial ou root podem alterar níveis de usuários
+    return user?.role === 'root' || user?.username === 'salesdesouzamatheus@gmail.com';
   };
 
   const handleEdit = (userToEdit: any) => {
@@ -135,7 +142,7 @@ export const UserManagement = () => {
                   </div>
 
                   <div className="flex space-x-2">
-                    {canCreateUsers() && (
+                    {canManageUserLevels() && (
                       <Button
                         variant="outline"
                         size="sm"

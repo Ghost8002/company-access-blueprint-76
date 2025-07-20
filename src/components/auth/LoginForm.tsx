@@ -56,10 +56,6 @@ export const LoginForm = () => {
             <CardTitle className="text-2xl font-bold">
               {config.name}
             </CardTitle>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              <p>Login de teste: <strong>luciano</strong></p>
-              <p>Senha: <strong>37imperial2025</strong></p>
-            </div>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
