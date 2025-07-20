@@ -148,7 +148,7 @@ export const useImportCSV = ({ companies, addCompany, updateCompany }: UseImport
       
       console.log('Dados finais para processamento:', data);
       
-      const { importedCount, updatedCount, skippedCount, errors } = validateAndImportData(data, { updateExisting });
+      const { importedCount, updatedCount, skippedCount, errors } = await validateAndImportData(data, { updateExisting });
       
       console.log('Resultado da validação:', { importedCount, updatedCount, skippedCount, errors });
 
@@ -168,7 +168,7 @@ export const useImportCSV = ({ companies, addCompany, updateCompany }: UseImport
 
       if (importedCount > 0 || updatedCount > 0) {
         toast({
-          title: "Importação CSV concluída",
+          title: "Importação concluída",
           description: successMessage || "Processamento concluído.",
         });
       }

@@ -9,10 +9,10 @@ export const useImportValidation = (
   addCompany: (company: Omit<Company, 'id'>) => void,
   updateCompany?: (id: string, updates: Partial<Company>) => void
 ) => {
-  const validateAndImportData = (
+  const validateAndImportData = async (
     data: any[], 
     options: ImportOptions = { updateExisting: false }
-  ): ImportResult => {
+  ): Promise<ImportResult> => {
     let importedCount = 0;
     let updatedCount = 0;
     let skippedCount = 0;
@@ -25,7 +25,7 @@ export const useImportValidation = (
       return { importedCount, updatedCount, skippedCount, errors };
     }
 
-    validData.forEach((item: any, index: number) => {
+    for (const item of validData) {
       const originalIndex = data.indexOf(item) + 1;
       
       try {
@@ -35,7 +35,7 @@ export const useImportValidation = (
         if (!name || name.trim() === '') {
           const error = `Linha ${originalIndex}: Nome da empresa é obrigatório`;
           errors.push(error);
-          return;
+          continue;
         }
 
         // Verificar se a empresa já existe (por CNPJ se informado, senão por nome)
@@ -48,29 +48,28 @@ export const useImportValidation = (
         
         if (existingCompany) {
           if (options.updateExisting && updateCompany) {
-            const identifier = taxId || name;
-            
             const updatedData = prepareCompanyData(item);
-            updateCompany(existingCompany.id, updatedData);
+            await updateCompany(existingCompany.id, updatedData);
             updatedCount++;
           } else {
-            const identifier = taxId || name;
             skippedCount++;
           }
-          return;
+          continue;
         }
 
         // Criar nova empresa
         const newCompanyData = prepareCompanyData(item);
         const newCompany: Omit<Company, 'id'> = {
           name,
-          taxId: taxId || '', // CNPJ pode estar vazio agora
+          taxId: taxId || '',
           taxRegime: (taxRegime as TaxRegime) || 'Simples Nacional',
           ...newCompanyData,
-          collaboratorIds: []
+          collaboratorIds: [],
+          sectorResponsibles: newCompanyData.sectorResponsibles || {},
+          alerts: []
         };
 
-        addCompany(newCompany);
+        await addCompany(newCompany);
         importedCount++;
         
       } catch (error) {
@@ -78,7 +77,7 @@ export const useImportValidation = (
         console.error(errorMsg);
         errors.push(errorMsg);
       }
-    });
+    }
 
     return { importedCount, updatedCount, skippedCount, errors };
   };
