@@ -8,8 +8,6 @@ import { ImportFileSelector } from './import/ImportFileSelector';
 import { ImportFieldsInfo } from './import/ImportFieldsInfo';
 import { useImportCSV } from '../../hooks/useImportCSV';
 import { useAuth } from '../../contexts/AuthContext';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
 
 interface ImportSectionProps {
   companies: Company[];
@@ -18,7 +16,7 @@ interface ImportSectionProps {
 }
 
 export const ImportSection = ({ companies, addCompany, updateCompany }: ImportSectionProps) => {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const isSupabaseUser = user && user.username.includes('@'); // Check if it's an email (Supabase user)
   
   const {
@@ -39,20 +37,6 @@ export const ImportSection = ({ companies, addCompany, updateCompany }: ImportSe
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {!isSupabaseUser && (
-          <Alert className="border-amber-500 bg-amber-50 dark:bg-amber-950/20">
-            <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-            <AlertDescription className="text-amber-800 dark:text-amber-200">
-              <strong>Atenção:</strong> Para importar dados, você precisa fazer login com uma conta de email/senha. 
-              O login local (usuário "luciano") não permite operações de banco de dados.
-              <br />
-              <span className="text-sm mt-1 block">
-                Clique em "Criar Nova Conta" na tela de login para criar uma conta com email e senha.
-              </span>
-            </AlertDescription>
-          </Alert>
-        )}
-        
         <div className="space-y-4">
           <div className="macos-spring-hover">
             <ExcelSampleDownload />
