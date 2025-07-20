@@ -1,381 +1,188 @@
-import React, { useState } from 'react';
-import { Company } from '../../../types/company';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line } from 'recharts';
-import { ArrowLeft, BarChart3, TrendingUp, DollarSign, PieChart as PieChartIcon, Target } from 'lucide-react';
 
-interface SectorSegmentAnalysisChartProps {
+import React, { useState } from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { MacOSCardAnimated } from '@/components/ui/macos-card-animated';
+import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import { Info } from 'lucide-react';
+import { Company } from '../../../types/company';
+import { FinancialChartModal } from './FinancialChartModal';
+import { MacOSFade } from '@/components/ui/macos-animations';
+
+interface SectorSegmentAnalysisProps {
   companies: Company[];
   onSectorSelect?: (sector: string) => void;
   selectedSector?: string;
 }
 
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#8dd1e1'];
+
 export const SectorSegmentAnalysisChart = ({ 
   companies, 
   onSectorSelect, 
-  selectedSector: externalSelectedSector 
-}: SectorSegmentAnalysisChartProps) => {
-  const [selectedSector, setSelectedSector] = useState<string>(externalSelectedSector || 'all');
-  const [viewMode, setViewMode] = useState<'sectors' | 'segments'>('sectors');
-  const [analysisType, setAnalysisType] = useState<'revenue' | 'profitability' | 'efficiency'>('revenue');
+  selectedSector = 'all' 
+}: SectorSegmentAnalysisProps) => {
+  const [showModal, setShowModal] = useState(false);
 
-  // Sincronizar com prop externa se fornecida
-  React.useEffect(() => {
-    if (externalSelectedSector !== undefined) {
-      setSelectedSector(externalSelectedSector);
-    }
-  }, [externalSelectedSector]);
-
-  // Filtrar empresas com valor honorário
-  const companiesWithValue = companies.filter(c => c.honoraryValue && c.honoraryValue > 0);
-  const totalRevenue = companiesWithValue.reduce((sum, c) => sum + (c.honoraryValue || 0), 0);
-
-  // Processar dados por setor com análises contábeis
-  const sectorData = companiesWithValue.reduce((acc, company) => {
+  // Agrupar por setor e calcular totais
+  const sectorData = companies.reduce((acc, company) => {
     const sector = company.companySector || 'Não informado';
-    const segment = company.segment || 'Não informado';
-    const honoraryValue = company.honoraryValue || 0;
-
     if (!acc[sector]) {
-      acc[sector] = {
-        name: sector,
-        totalValue: 0,
-        totalCount: 0,
-        segments: {},
-        averageValue: 0,
-        revenueShare: 0,
-        profitability: 0 // Simulado - seria calculado com custos reais
-      };
+      acc[sector] = { name: sector, value: 0, count: 0 };
     }
-
-    if (!acc[sector].segments[segment]) {
-      acc[sector].segments[segment] = {
-        name: segment,
-        value: 0,
-        count: 0,
-        averageValue: 0,
-        revenueShare: 0,
-        sectorShare: 0
-      };
-    }
-
-    acc[sector].totalValue += honoraryValue;
-    acc[sector].totalCount += 1;
-    acc[sector].segments[segment].value += honoraryValue;
-    acc[sector].segments[segment].count += 1;
-
+    acc[sector].value += company.honoraryValue || 0;
+    acc[sector].count += 1;
     return acc;
-  }, {} as Record<string, any>);
+  }, {} as Record<string, { name: string; value: number; count: number }>);
 
-  // Calcular métricas contábeis
-  Object.values(sectorData).forEach((sector: any) => {
-    sector.averageValue = sector.totalCount > 0 ? sector.totalValue / sector.totalCount : 0;
-    sector.revenueShare = (sector.totalValue / totalRevenue) * 100;
-    sector.profitability = sector.revenueShare * 0.85; // Simulado - margem de 85%
+  // Preparar dados para o gráfico
+  const chartData = Object.values(sectorData)
+    .filter(sector => sector.value > 0)
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 10);
 
-    Object.values(sector.segments).forEach((segment: any) => {
-      segment.averageValue = segment.count > 0 ? segment.value / segment.count : 0;
-      segment.revenueShare = (segment.value / totalRevenue) * 100;
-      segment.sectorShare = (segment.value / sector.totalValue) * 100;
-    });
-  });
-
-  // Converter para arrays com análises contábeis
-  const sectorsArray = Object.values(sectorData).map((sector: any) => ({
-    name: sector.name,
-    value: sector.totalValue,
-    count: sector.totalCount,
-    percentage: sector.revenueShare.toFixed(1),
-    averageValue: sector.averageValue,
-    revenueShare: sector.revenueShare,
-    profitability: sector.profitability,
-    efficiency: sector.averageValue * sector.totalCount / totalRevenue * 100 // Eficiência por cliente
+  const modalData = chartData.map(item => ({
+    name: item.name,
+    value: item.value,
+    count: item.count,
+    percentage: ((item.value / companies.reduce((sum, c) => sum + (c.honoraryValue || 0), 0)) * 100).toFixed(1) + '%'
   }));
 
-  // Dados para o gráfico atual
-  const chartData = viewMode === 'sectors' 
-    ? sectorsArray
-    : selectedSector !== 'all' && sectorData[selectedSector]
-      ? Object.values(sectorData[selectedSector].segments).map((segment: any) => ({
-          name: segment.name,
-          value: segment.value,
-          count: segment.count,
-          percentage: segment.revenueShare.toFixed(1),
-          averageValue: segment.averageValue,
-          revenueShare: segment.revenueShare,
-          sectorShare: segment.sectorShare
-        }))
-      : [];
+  const handleBarClick = (data: any) => {
+    if (onSectorSelect) {
+      onSectorSelect(data.name);
+    }
+  };
 
+  const handleResetFilter = () => {
+    if (onSectorSelect) {
+      onSectorSelect('all');
+    }
+  };
 
+  const handleChartClick = () => {
+    setShowModal(true);
+  };
 
-  // Cores para o gráfico
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658', '#FF6B6B'];
-
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-white p-3 border rounded-lg shadow-lg text-sm">
-          <p className="font-semibold text-gray-800">{data.name}</p>
-          <p className="text-green-600">R$ {data.value.toLocaleString('pt-BR')}</p>
-          <p className="text-blue-600">{data.percentage}% do total</p>
+        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+          <p className="font-semibold text-gray-800 mb-1">{label}</p>
+          <p className="text-blue-600 text-sm">
+            Faturamento: {new Intl.NumberFormat('pt-BR', {
+              style: 'currency',
+              currency: 'BRL'
+            }).format(data.value)}
+          </p>
+          <p className="text-green-600 text-sm">
+            Empresas: {data.count}
+          </p>
         </div>
       );
     }
     return null;
   };
 
-  const handleSectorClick = (sectorName: string) => {
-    if (viewMode === 'sectors') {
-      setSelectedSector(sectorName);
-      setViewMode('segments');
-      
-      if (onSectorSelect) {
-        onSectorSelect(sectorName);
-      }
-    }
-  };
-
-  const handleBackToSectors = () => {
-    setViewMode('sectors');
-    setSelectedSector('all');
-    
-    if (onSectorSelect) {
-      onSectorSelect('all');
-    }
-  };
-
-  const handleSectorFilterChange = (sector: string) => {
-    setSelectedSector(sector);
-    
-    if (onSectorSelect) {
-      onSectorSelect(sector);
-    }
-  };
-
-  const selectedSectorData = selectedSector !== 'all' ? sectorData[selectedSector] : null;
-
-  // Verificar se há dados
-  if (companiesWithValue.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="w-5 h-5" />
-            Análise Contábil por Setor
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-gray-500">
-            Nenhuma empresa com valor honorário encontrada.
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      {/* Análise Principal */}
-      <Card>
+    <MacOSFade>
+      <MacOSCardAnimated 
+        interactive 
+        glassEffect 
+        className="cursor-pointer hover:shadow-xl transition-all duration-300" 
+        onClick={handleChartClick}
+      >
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              {viewMode === 'segments' && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleBackToSectors}
-                  className="p-1 h-auto"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                </Button>
-              )}
-              <BarChart3 className="w-5 h-5" />
-              {viewMode === 'sectors' ? 'Análise Contábil por Setor' : `Segmentos - ${selectedSector}`}
-              {onSectorSelect && (
-                <Badge variant="outline" className="text-xs ml-2">
-                  Filtro Ativo
-                </Badge>
-              )}
-            </CardTitle>
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs">
-                R$ {totalRevenue.toLocaleString('pt-BR')}
-              </Badge>
-              <Badge variant="outline" className="text-xs">
-                {companiesWithValue.length} Empresas
-              </Badge>
+              <CardTitle>Análise por Setores</CardTitle>
+              <HoverCard>
+                <HoverCardTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                    <Info className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                  </Button>
+                </HoverCardTrigger>
+                <HoverCardContent className="w-80">
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-semibold">Como usar este gráfico:</h4>
+                    <ul className="text-xs text-gray-600 space-y-1">
+                      <li>• Clique em uma barra para filtrar a tabela por setor</li>
+                      <li>• Use o botão "Todos os Setores" para remover filtros</li>
+                      <li>• Clique no gráfico para ver dados detalhados</li>
+                      <li>• Passe o mouse sobre as barras para ver informações</li>
+                    </ul>
+                  </div>
+                </HoverCardContent>
+              </HoverCard>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Button
+                onClick={handleResetFilter}
+                variant={selectedSector === 'all' ? 'default' : 'outline'}
+                size="sm"
+              >
+                Todos os Setores
+              </Button>
+              {selectedSector !== 'all' && (
+                <div className="text-sm text-blue-600 font-medium">
+                  Filtrado: {selectedSector}
+                </div>
+              )}
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {/* Controles */}
-            {viewMode === 'sectors' && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Filtrar por setor:</span>
-                <Select value={selectedSector} onValueChange={handleSectorFilterChange}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Todos os setores" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os setores</SelectItem>
-                    {sectorsArray.map(sector => (
-                      <SelectItem key={sector.name} value={sector.name}>
-                        {sector.name} ({sector.count})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {/* Gráficos lado a lado */}
-            {chartData.length > 0 && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Gráfico em Pizza */}
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={chartData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percentage }) => `${name} (${percentage}%)`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                        onClick={(data) => viewMode === 'sectors' && handleSectorClick(data.name)}
-                        style={{ cursor: viewMode === 'sectors' ? 'pointer' : 'default' }}
-                      >
-                        {chartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip content={<CustomTooltip />} />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-
-                {/* Gráfico em Barras */}
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis 
-                        dataKey="name" 
-                        angle={-45}
-                        textAnchor="end"
-                        height={60}
-                        fontSize={10}
-                      />
-                      <YAxis 
-                        orientation="left" 
-                        stroke="#3B82F6"
-                        fontSize={10}
-                      />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Bar 
-                        dataKey="value" 
-                        fill="#3B82F6" 
-                        name="Valor Total (R$)"
-                        onClick={(data) => viewMode === 'sectors' && handleSectorClick(data.name)}
-                        style={{ cursor: viewMode === 'sectors' ? 'pointer' : 'default' }}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            )}
-
-            {/* Resumo do setor selecionado */}
-            {viewMode === 'segments' && selectedSectorData && (
-              <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                <h5 className="font-semibold text-sm text-blue-800 mb-2">
-                  Resumo Contábil do Setor: {selectedSector}
-                </h5>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-600">Total de Empresas:</span>
-                    <p className="font-medium">{selectedSectorData.totalCount}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Faturamento Total:</span>
-                    <p className="font-medium">R$ {selectedSectorData.totalValue.toLocaleString('pt-BR')}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">% do Faturamento Geral:</span>
-                    <p className="font-medium">{((selectedSectorData.totalValue / totalRevenue) * 100).toFixed(1)}%</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Ticket Médio:</span>
-                    <p className="font-medium">R$ {(selectedSectorData.totalValue / selectedSectorData.totalCount).toLocaleString('pt-BR')}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="name" 
+                angle={-45}
+                textAnchor="end"
+                height={100}
+                fontSize={12}
+              />
+              <YAxis 
+                tickFormatter={(value) => 
+                  new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL',
+                    notation: 'compact'
+                  }).format(value)
+                }
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar 
+                dataKey="value" 
+                fill="#0088FE"
+                onClick={handleBarClick}
+                className="cursor-pointer hover:opacity-80"
+              />
+            </BarChart>
+          </ResponsiveContainer>
         </CardContent>
-      </Card>
+      </MacOSCardAnimated>
 
-
-
-      {/* Análise Detalhada por Segmento */}
-      {viewMode === 'segments' && selectedSectorData && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <Target className="w-4 h-4" />
-              Análise Detalhada dos Segmentos - {selectedSector}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-2">Segmento</th>
-                    <th className="text-right p-2">Empresas</th>
-                    <th className="text-right p-2">Faturamento</th>
-                    <th className="text-right p-2">% do Total</th>
-                    <th className="text-right p-2">% do Setor</th>
-                    <th className="text-right p-2">Ticket Médio</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.values(selectedSectorData.segments)
-                    .sort((a: any, b: any) => b.value - a.value)
-                    .map((segment: any) => (
-                      <tr key={segment.name} className="border-b hover:bg-gray-50">
-                        <td className="p-2 font-medium">{segment.name}</td>
-                        <td className="p-2 text-right">{segment.count}</td>
-                        <td className="p-2 text-right text-green-600 font-medium">
-                          R$ {segment.value.toLocaleString('pt-BR')}
-                        </td>
-                        <td className="p-2 text-right text-blue-600">
-                          {segment.revenueShare.toFixed(1)}%
-                        </td>
-                        <td className="p-2 text-right text-purple-600">
-                          {segment.sectorShare.toFixed(1)}%
-                        </td>
-                        <td className="p-2 text-right text-orange-600 font-medium">
-                          R$ {segment.averageValue.toLocaleString('pt-BR')}
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+      <FinancialChartModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        title="Análise por Setores"
+        data={modalData}
+        columns={[
+          { key: 'name', label: 'Setor' },
+          { key: 'count', label: 'Empresas' },
+          { key: 'value', label: 'Faturamento', 
+            render: (value) => new Intl.NumberFormat('pt-BR', {
+              style: 'currency',
+              currency: 'BRL'
+            }).format(value as number)
+          },
+          { key: 'percentage', label: '% do Total' }
+        ]}
+      />
+    </MacOSFade>
   );
-}; 
+};
