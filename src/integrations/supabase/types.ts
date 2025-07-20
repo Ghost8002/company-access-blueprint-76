@@ -101,10 +101,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          email: string
+          email?: string
           id: string
-          name: string
-          role: string
+          name?: string
+          role?: string
           sector?: string | null
           updated_at?: string
         }
