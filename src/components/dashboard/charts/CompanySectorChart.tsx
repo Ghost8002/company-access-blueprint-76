@@ -10,11 +10,70 @@ interface CompanySectorChartProps {
   data: { name: string; count: number }[];
 }
 
+// Função para encurtar nomes de setores
+const getSectorShortName = (sectorName: string): string => {
+  const sectorMap: Record<string, string> = {
+    'MATERIAIS DE CONSTRUÇÃO': 'MAT. CONSTRUÇÃO',
+    'PRODUTOS DOMÉSTICOS': 'PROD. DOMÉSTICOS',
+    'SUPERMERCADO': 'SUPERMERCADO',
+    'CONFECÇÕES': 'CONFECÇÕES',
+    'COMBUSTÍVEIS': 'COMBUSTÍVEIS',
+    'ELETRÔNICOS': 'ELETRÔNICOS',
+    'INFORMÁTICA': 'INFORMÁTICA',
+    'FARMÁCIA': 'FARMÁCIA',
+    'RESTAURANTE': 'RESTAURANTE',
+    'VARIEDADES': 'VARIEDADES',
+    'AUTOPEÇAS': 'AUTOPEÇAS',
+    'MATERIAIS HOSPITALARES': 'MAT. HOSPITALARES',
+    'MÓVEIS': 'MÓVEIS',
+    'COSMÉTICOS': 'COSMÉTICOS',
+    'EQUIPAMENTOS': 'EQUIPAMENTOS',
+    'SERVIÇOS': 'SERVIÇOS',
+    'COMÉRCIO': 'COMÉRCIO',
+    'INDÚSTRIA': 'INDÚSTRIA',
+    'PRODUTOR RURAL': 'PROD. RURAL',
+    'TERCEIRO SETOR': '3º SETOR',
+    'CONSTRUÇÃO CIVIL': 'CONSTRUÇÃO',
+    'TECNOLOGIA': 'TECNOLOGIA',
+    'SAÚDE': 'SAÚDE',
+    'EDUCAÇÃO': 'EDUCAÇÃO',
+    'TRANSPORTE': 'TRANSPORTE',
+    'AGRONEGÓCIO': 'AGRONEGÓCIO',
+    'FINANCEIRO': 'FINANCEIRO',
+    'ENERGIA': 'ENERGIA',
+    'TELECOMUNICAÇÕES': 'TELECOM'
+  };
+  
+  return sectorMap[sectorName] || sectorName;
+};
+
 export const CompanySectorChart = ({ data }: CompanySectorChartProps) => {
   const [showModal, setShowModal] = useState(false);
 
+  // Processar dados para incluir nomes curtos
+  const processedData = data.map(item => ({
+    ...item,
+    shortName: getSectorShortName(item.name)
+  }));
+
   const handleChartClick = () => {
     setShowModal(true);
+  };
+
+  // Tooltip customizado
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+          <p className="font-semibold text-gray-800 mb-1">{data.name}</p>
+          <p className="text-blue-600 text-sm">
+            Quantidade: {data.count} empresa{data.count > 1 ? 's' : ''}
+          </p>
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
@@ -28,16 +87,22 @@ export const CompanySectorChart = ({ data }: CompanySectorChartProps) => {
         <CardHeader>
           <CardTitle>Empresas por Setor</CardTitle>
           <CardDescription>
-            Distribuição das empresas por setor de atividade (clique para ver detalhes)
+            Distribuição das empresas por setor de atividade (passe o mouse para detalhes)
           </CardDescription>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={data}>
+            <BarChart data={processedData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
+              <XAxis 
+                dataKey="shortName" 
+                angle={-45} 
+                textAnchor="end" 
+                height={80}
+                fontSize={10}
+              />
               <YAxis />
-              <Tooltip />
+              <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="count" fill="#8884d8" />
             </BarChart>
           </ResponsiveContainer>
