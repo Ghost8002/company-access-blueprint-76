@@ -4,8 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line } from 'recharts';
-import { ArrowLeft, BarChart3, TrendingUp, DollarSign, PieChart as PieChartIcon, Target } from 'lucide-react';
+import { ArrowLeft, BarChart3, TrendingUp, DollarSign, PieChart as PieChartIcon, Target, Info } from 'lucide-react';
 
 interface SectorSegmentAnalysisChartProps {
   companies: Company[];
@@ -110,8 +111,6 @@ export const SectorSegmentAnalysisChart = ({
         }))
       : [];
 
-
-
   // Cores para o gráfico
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658', '#FF6B6B'];
 
@@ -184,7 +183,7 @@ export const SectorSegmentAnalysisChart = ({
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
               {viewMode === 'segments' && (
                 <Button
                   variant="ghost"
@@ -196,13 +195,33 @@ export const SectorSegmentAnalysisChart = ({
                 </Button>
               )}
               <BarChart3 className="w-5 h-5" />
-              {viewMode === 'sectors' ? 'Análise Contábil por Setor' : `Segmentos - ${selectedSector}`}
+              <CardTitle className="flex items-center gap-2">
+                {viewMode === 'sectors' ? 'Análise Contábil por Setor' : `Segmentos - ${selectedSector}`}
+                <HoverCard>
+                  <HoverCardTrigger asChild>
+                    <Button variant="ghost" size="sm" className="p-1 h-auto">
+                      <Info className="w-4 h-4 text-gray-500" />
+                    </Button>
+                  </HoverCardTrigger>
+                  <HoverCardContent className="w-80">
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-semibold">Sobre esta análise</h4>
+                      <p className="text-xs text-gray-600">
+                        {viewMode === 'sectors' 
+                          ? 'Esta análise apresenta a distribuição do faturamento por setor, permitindo identificar as áreas mais rentáveis do negócio. Clique em um setor para ver os segmentos detalhados.'
+                          : `Análise detalhada dos segmentos dentro do setor ${selectedSector}, mostrando a distribuição de faturamento e participação relativa.`
+                        }
+                      </p>
+                    </div>
+                  </HoverCardContent>
+                </HoverCard>
+              </CardTitle>
               {onSectorSelect && (
                 <Badge variant="outline" className="text-xs ml-2">
                   Filtro Ativo
                 </Badge>
               )}
-            </CardTitle>
+            </div>
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-xs">
                 R$ {totalRevenue.toLocaleString('pt-BR')}
@@ -325,8 +344,6 @@ export const SectorSegmentAnalysisChart = ({
         </CardContent>
       </Card>
 
-
-
       {/* Análise Detalhada por Segmento */}
       {viewMode === 'segments' && selectedSectorData && (
         <Card>
@@ -378,4 +395,4 @@ export const SectorSegmentAnalysisChart = ({
       )}
     </div>
   );
-}; 
+};
