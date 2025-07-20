@@ -5,33 +5,55 @@ import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { InteractiveButton } from '@/components/ui/interactive-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAuth } from '../../contexts/AuthContext';
+import { useSupabaseAuth } from '../../hooks/useSupabaseAuth';
 import { useConfig } from '../../contexts/ConfigContext';
-import { Building2 } from 'lucide-react';
+import { Building2, ArrowLeft } from 'lucide-react';
 import { MacOSFade, MacOSSpring } from '@/components/ui/macos-animations';
-import { SignUpForm } from './SignUpForm';
 
-export const LoginForm = () => {
-  const [username, setUsername] = useState('');
+interface SignUpFormProps {
+  onBackToLogin: () => void;
+}
+
+export const SignUpForm = ({ onBackToLogin }: SignUpFormProps) => {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
-  const [showSignUp, setShowSignUp] = useState(false);
-  const { login } = useAuth();
+  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { signUp } = useSupabaseAuth();
   const { config } = useConfig();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     
-    const success = await login(username, password);
-    if (!success) {
-      setError('Credenciais inválidas');
+    if (password !== confirmPassword) {
+      setError('As senhas não coincidem');
+      return;
+    }
+    
+    if (password.length < 6) {
+      setError('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+    
+    setLoading(true);
+    
+    try {
+      const { error } = await signUp(email, password);
+      if (error) {
+        setError(error.message);
+      } else {
+        setSuccess('Conta criada com sucesso! Verifique seu email para confirmar.');
+      }
+    } catch (err) {
+      setError('Erro ao criar conta. Tente novamente.');
+    } finally {
+      setLoading(false);
     }
   };
-
-  if (showSignUp) {
-    return <SignUpForm onBackToLogin={() => setShowSignUp(false)} />;
-  }
 
   return (
     <MacOSFade>
@@ -54,23 +76,19 @@ export const LoginForm = () => {
               )}
             </MacOSSpring>
             <CardTitle className="text-2xl font-bold">
-              {config.name}
+              Criar Conta - {config.name}
             </CardTitle>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              <p>Login de teste: <strong>luciano</strong></p>
-              <p>Senha: <strong>37imperial2025</strong></p>
-            </div>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="username">Usuário ou Email</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
-                  id="username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Digite seu usuário ou email"
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Digite seu email"
                   required
                 />
               </div>
@@ -82,27 +100,45 @@ export const LoginForm = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Digite sua senha"
+                  minLength={6}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirme sua senha"
+                  minLength={6}
                   required
                 />
               </div>
               {error && (
                 <div className="text-red-600 text-sm text-center">{error}</div>
               )}
+              {success && (
+                <div className="text-green-600 text-sm text-center">{success}</div>
+              )}
               <InteractiveButton 
                 type="submit" 
                 variant="macos"
                 className="w-full"
                 withSpring={true}
+                disabled={loading}
               >
-                Entrar
+                {loading ? 'Criando...' : 'Criar Conta'}
               </InteractiveButton>
               <InteractiveButton 
                 type="button" 
                 variant="outline"
                 className="w-full"
-                onClick={() => setShowSignUp(true)}
+                onClick={onBackToLogin}
               >
-                Criar Nova Conta
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Voltar ao Login
               </InteractiveButton>
             </form>
           </CardContent>

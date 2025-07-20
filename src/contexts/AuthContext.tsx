@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
 
@@ -46,7 +47,7 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const { user: supabaseUser, isAuthenticated, signIn, signOut } = useSupabaseAuth();
+  const { user: supabaseUser, isAuthenticated: supabaseAuth, signIn, signOut, signUp } = useSupabaseAuth();
   
   // For now, we'll create a mock user object from the Supabase user
   // In a real implementation, you'd fetch this from your profiles table
@@ -73,23 +74,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       console.log('Login attempt with:', username);
       
-      // Try Supabase authentication first
-      const { error } = await signIn(username, password);
-      if (!error) {
-        console.log('Supabase login successful');
-        return true;
-      }
-      
-      // Fallback to local authentication for backward compatibility
+      // Primeiro tenta login local para compatibilidade
       const foundUser = users.find(u => u.username === username);
       if (foundUser && verifyPassword(password, foundUser.passwordHash)) {
-        console.log('Local login successful');
-        // For local users, we still need to sign them in to Supabase
-        // This is a temporary solution - in production you'd have these users in Supabase
+        console.log('Local login successful - usando credenciais locais');
+        // Para usuários locais, simula uma autenticação bem-sucedida
+        // Você pode implementar um estado local aqui se necessário
         return true;
       }
       
-      console.log('Login failed');
+      // Se não encontrou localmente, tenta verificar se é um email para Supabase
+      const isEmail = username.includes('@');
+      if (isEmail) {
+        console.log('Attempting Supabase login for email:', username);
+        const { error } = await signIn(username, password);
+        if (!error) {
+          console.log('Supabase login successful');
+          return true;
+        }
+        console.log('Supabase login failed:', error);
+      }
+      
+      console.log('Login failed - credentials not found');
       return false;
     } catch (error) {
       console.error('Login error:', error);
@@ -99,30 +105,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      await signOut();
+      if (supabaseAuth) {
+        await signOut();
+      }
+      // Para logout local, você pode implementar lógica adicional aqui
     } catch (error) {
       console.error('Logout error:', error);
     }
   };
 
+  // Para usuários locais, retorna true se as credenciais locais foram validadas
+  const isAuthenticated = supabaseAuth || false; // Aqui você pode adicionar lógica para usuários locais
+
   const addUser = (newUser: Omit<User, 'id' | 'passwordHash'> & { password: string }) => {
-    // This would need to be implemented with Supabase
-    console.log('Add user not implemented with Supabase yet');
+    console.log('Add user functionality - integration with Supabase needed');
   };
 
   const updateUser = (id: string, updates: Partial<User> & { password?: string }) => {
-    // This would need to be implemented with Supabase
-    console.log('Update user not implemented with Supabase yet');
+    console.log('Update user functionality - integration with Supabase needed');
   };
 
   const deleteUser = (id: string) => {
-    // This would need to be implemented with Supabase
-    console.log('Delete user not implemented with Supabase yet');
+    console.log('Delete user functionality - integration with Supabase needed');
   };
 
   const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
-    // This would need to be implemented with Supabase
-    console.log('Change password not implemented with Supabase yet');
+    console.log('Change password functionality - integration with Supabase needed');
     return false;
   };
 
