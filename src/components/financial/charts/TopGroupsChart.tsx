@@ -126,7 +126,7 @@ export const TopGroupsChart = ({ companies }: TopGroupsChartProps) => {
               style={{ backgroundColor: entry.color }}
             />
             <span className="text-gray-700">
-              {entry.payload.shortName} ({entry.payload.percentage}%)
+              {entry.payload.shortName}
             </span>
           </div>
         ))}
@@ -156,7 +156,7 @@ export const TopGroupsChart = ({ companies }: TopGroupsChartProps) => {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ shortName, percentage }) => `${shortName} (${percentage}%)`}
+                label={({ shortName }) => shortName}
                 outerRadius={100}
                 fill="#8884d8"
                 dataKey="value"
