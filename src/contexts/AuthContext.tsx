@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
 
 export type UserRole = 'root' | 'manager' | 'collaborator';
@@ -48,18 +48,10 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { user: supabaseUser, isAuthenticated: supabaseAuth, signIn, signOut, signUp } = useSupabaseAuth();
-  
-  // For now, we'll create a mock user object from the Supabase user
-  // In a real implementation, you'd fetch this from your profiles table
-  const user: User | null = supabaseUser ? {
-    id: supabaseUser.id,
-    name: supabaseUser.email?.split('@')[0] || 'User',
-    username: supabaseUser.email || '',
-    passwordHash: '',
-    role: 'manager' // Default role for authenticated users
-  } : null;
+  const [localUser, setLocalUser] = useState<User | null>(null);
+  const [isLocalAuth, setIsLocalAuth] = useState(false);
 
-  // Keep existing users array for backward compatibility
+  // Users array for local authentication
   const users: User[] = [
     { 
       id: '1', 
@@ -70,6 +62,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   ];
 
+  // Check for stored local session on mount
+  useEffect(() => {
+    const storedUser = localStorage.getItem('localUser');
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setLocalUser(parsedUser);
+        setIsLocalAuth(true);
+        console.log('Restored local user session:', parsedUser.name);
+      } catch (error) {
+        console.error('Error parsing stored user:', error);
+        localStorage.removeItem('localUser');
+      }
+    }
+  }, []);
+
+  // Determine current user and auth status
+  const user: User | null = localUser || (supabaseUser ? {
+    id: supabaseUser.id,
+    name: supabaseUser.email?.split('@')[0] || 'User',
+    username: supabaseUser.email || '',
+    passwordHash: '',
+    role: 'manager' // Default role for authenticated users
+  } : null);
+
+  const isAuthenticated = isLocalAuth || supabaseAuth;
+
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
       console.log('Login attempt with:', username);
@@ -78,8 +97,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const foundUser = users.find(u => u.username === username);
       if (foundUser && verifyPassword(password, foundUser.passwordHash)) {
         console.log('Local login successful - usando credenciais locais');
-        // Para usuários locais, simula uma autenticação bem-sucedida
-        // Você pode implementar um estado local aqui se necessário
+        setLocalUser(foundUser);
+        setIsLocalAuth(true);
+        // Store in localStorage for persistence
+        localStorage.setItem('localUser', JSON.stringify(foundUser));
         return true;
       }
       
@@ -90,6 +111,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const { error } = await signIn(username, password);
         if (!error) {
           console.log('Supabase login successful');
+          // Clear local auth if Supabase login succeeds
+          setLocalUser(null);
+          setIsLocalAuth(false);
+          localStorage.removeItem('localUser');
           return true;
         }
         console.log('Supabase login failed:', error);
@@ -108,14 +133,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (supabaseAuth) {
         await signOut();
       }
-      // Para logout local, você pode implementar lógica adicional aqui
+      // Clear local authentication
+      setLocalUser(null);
+      setIsLocalAuth(false);
+      localStorage.removeItem('localUser');
+      console.log('Logout successful');
     } catch (error) {
       console.error('Logout error:', error);
     }
   };
-
-  // Para usuários locais, retorna true se as credenciais locais foram validadas
-  const isAuthenticated = supabaseAuth || false; // Aqui você pode adicionar lógica para usuários locais
 
   const addUser = (newUser: Omit<User, 'id' | 'passwordHash'> & { password: string }) => {
     console.log('Add user functionality - integration with Supabase needed');
@@ -133,6 +159,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     console.log('Change password functionality - integration with Supabase needed');
     return false;
   };
+
+  console.log('Auth state:', { isAuthenticated, isLocalAuth, supabaseAuth, userName: user?.name });
 
   return (
     <AuthContext.Provider value={{
