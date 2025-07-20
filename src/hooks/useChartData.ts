@@ -1,4 +1,3 @@
-
 import { useAuth } from '../contexts/AuthContext';
 import { useCompanies } from '../contexts/CompanyContext';
 
@@ -10,14 +9,27 @@ export const useChartData = () => {
     user?.role === 'manager' ? companies :
     companies.filter(c => c.collaboratorIds.includes(user?.id || ''));
 
-  // Calculate basic metrics
+  // Calculate basic metrics using the newTaxRegime field
   const totalCompanies = filteredCompanies.length;
   const highComplexityCompanies = filteredCompanies.filter(c => c.complexityLevel === 'High').length;
-  const simplesNacionalCompanies = filteredCompanies.filter(c => c.taxRegime === 'Simples Nacional').length;
-  const lucroPresumidoCompanies = filteredCompanies.filter(c => c.taxRegime === 'Lucro Presumido').length;
-  const lucroRealCompanies = filteredCompanies.filter(c => c.taxRegime === 'Lucro Real').length;
+  
+  // Use newTaxRegime for the calculations
+  const simplesNacionalCompanies = filteredCompanies.filter(c => 
+    c.newTaxRegime === 'SIMPLES NACIONAL' || 
+    (c.newTaxRegime === null && c.taxRegime === 'Simples Nacional')
+  ).length;
+  
+  const lucroPresumidoCompanies = filteredCompanies.filter(c => 
+    c.newTaxRegime === 'LUCRO PRESUMIDO' || 
+    (c.newTaxRegime === null && c.taxRegime === 'Lucro Presumido')
+  ).length;
+  
+  const lucroRealCompanies = filteredCompanies.filter(c => 
+    c.newTaxRegime === 'LUCRO REAL' || 
+    (c.newTaxRegime === null && c.taxRegime === 'Lucro Real')
+  ).length;
 
-  // Group companies by tax regime
+  // Group companies by tax regime (legacy field)
   const regimeData = filteredCompanies.reduce((acc, company) => {
     const regime = company.taxRegime;
     if (!acc[regime]) {
@@ -76,8 +88,6 @@ export const useChartData = () => {
   };
 
   const sectorVsClientData = sectorClientData();
-
-  // Novos dados para os gráficos dos novos campos
 
   // Group companies by new tax regime
   const newTaxRegimeData = filteredCompanies.reduce((acc, company) => {
