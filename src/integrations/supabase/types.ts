@@ -54,7 +54,7 @@ export type Database = {
           honorary_value?: number | null
           id?: string
           municipality?: string | null
-          name: string
+          name?: string
           new_tax_regime?: string | null
           pessoal_responsible?: string | null
           segment?: string | null

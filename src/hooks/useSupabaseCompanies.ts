@@ -2,6 +2,11 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Company } from '../types/company';
+import type { Database } from '@/integrations/supabase/types';
+
+type CompanyRow = Database['public']['Tables']['companies']['Row'];
+type CompanyInsert = Database['public']['Tables']['companies']['Insert'];
+type CompanyUpdate = Database['public']['Tables']['companies']['Update'];
 
 export const useSupabaseCompanies = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -11,40 +16,50 @@ export const useSupabaseCompanies = () => {
   const fetchCompanies = async () => {
     try {
       setLoading(true);
+      console.log('Fetching companies from Supabase...');
+      
       const { data, error } = await supabase
         .from('companies')
-        .select('*');
+        .select('*')
+        .order('name');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching companies:', error);
+        throw error;
+      }
 
-      const mappedCompanies: Company[] = (data || []).map(company => ({
+      console.log('Companies fetched successfully:', data?.length || 0);
+
+      const mappedCompanies: Company[] = (data || []).map((company: CompanyRow) => ({
         id: company.id,
         name: company.name,
         taxId: company.tax_id || '',
-        cpf: company.cpf,
-        complexityLevel: company.complexity_level,
-        clientClass: company.client_class,
+        cpf: company.cpf || '',
+        complexityLevel: company.complexity_level || '',
+        clientClass: company.client_class || '',
         taxRegime: company.tax_regime || 'Simples Nacional',
-        newTaxRegime: company.new_tax_regime,
-        group: company.company_group,
-        classification: company.classification,
-        municipality: company.municipality,
-        situation: company.situation,
-        honoraryValue: company.honorary_value,
-        companySector: company.company_sector,
-        segment: company.segment,
+        newTaxRegime: company.new_tax_regime || '',
+        group: company.company_group || '',
+        classification: company.classification || '',
+        municipality: company.municipality || '',
+        situation: company.situation || '',
+        honoraryValue: company.honorary_value || 0,
+        companySector: company.company_sector || '',
+        segment: company.segment || '',
         collaboratorIds: [], // Will be populated by junction table
         sectorResponsibles: {
-          fiscal: company.fiscal_responsible,
-          pessoal: company.pessoal_responsible,
-          contabil: company.contabil_responsible,
-          financeiro: company.financeiro_responsible
+          fiscal: company.fiscal_responsible || '',
+          pessoal: company.pessoal_responsible || '',
+          contabil: company.contabil_responsible || '',
+          financeiro: company.financeiro_responsible || ''
         },
         alerts: company.alerts || []
       }));
 
       setCompanies(mappedCompanies);
+      setError(null);
     } catch (err) {
+      console.error('Error in fetchCompanies:', err);
       setError(err instanceof Error ? err.message : 'Erro ao carregar empresas');
     } finally {
       setLoading(false);
@@ -53,36 +68,45 @@ export const useSupabaseCompanies = () => {
 
   const addCompany = async (newCompany: Omit<Company, 'id'>) => {
     try {
+      console.log('Adding new company:', newCompany.name);
+      
+      const insertData: CompanyInsert = {
+        name: newCompany.name,
+        tax_id: newCompany.taxId || null,
+        cpf: newCompany.cpf || null,
+        complexity_level: newCompany.complexityLevel || null,
+        client_class: newCompany.clientClass || null,
+        tax_regime: newCompany.taxRegime || 'Simples Nacional',
+        new_tax_regime: newCompany.newTaxRegime || null,
+        company_group: newCompany.group || null,
+        classification: newCompany.classification || null,
+        municipality: newCompany.municipality || null,
+        situation: newCompany.situation || null,
+        honorary_value: newCompany.honoraryValue || null,
+        company_sector: newCompany.companySector || null,
+        segment: newCompany.segment || null,
+        fiscal_responsible: newCompany.sectorResponsibles?.fiscal || null,
+        pessoal_responsible: newCompany.sectorResponsibles?.pessoal || null,
+        contabil_responsible: newCompany.sectorResponsibles?.contabil || null,
+        financeiro_responsible: newCompany.sectorResponsibles?.financeiro || null,
+        alerts: newCompany.alerts || null
+      };
+
       const { data, error } = await supabase
         .from('companies')
-        .insert({
-          name: newCompany.name,
-          tax_id: newCompany.taxId,
-          cpf: newCompany.cpf,
-          complexity_level: newCompany.complexityLevel,
-          client_class: newCompany.clientClass,
-          tax_regime: newCompany.taxRegime,
-          new_tax_regime: newCompany.newTaxRegime,
-          company_group: newCompany.group,
-          classification: newCompany.classification,
-          municipality: newCompany.municipality,
-          situation: newCompany.situation,
-          honorary_value: newCompany.honoraryValue,
-          company_sector: newCompany.companySector,
-          segment: newCompany.segment,
-          fiscal_responsible: newCompany.sectorResponsibles?.fiscal,
-          pessoal_responsible: newCompany.sectorResponsibles?.pessoal,
-          contabil_responsible: newCompany.sectorResponsibles?.contabil,
-          financeiro_responsible: newCompany.sectorResponsibles?.financeiro,
-          alerts: newCompany.alerts
-        })
+        .insert(insertData)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error adding company:', error);
+        throw error;
+      }
 
+      console.log('Company added successfully:', data);
       await fetchCompanies(); // Refresh the list
     } catch (err) {
+      console.error('Error in addCompany:', err);
       setError(err instanceof Error ? err.message : 'Erro ao criar empresa');
       throw err;
     }
@@ -90,35 +114,45 @@ export const useSupabaseCompanies = () => {
 
   const updateCompany = async (id: string, updates: Partial<Company>) => {
     try {
+      console.log('Updating company:', id, updates);
+      
+      const updateData: CompanyUpdate = {
+        name: updates.name,
+        tax_id: updates.taxId || null,
+        cpf: updates.cpf || null,
+        complexity_level: updates.complexityLevel || null,
+        client_class: updates.clientClass || null,
+        tax_regime: updates.taxRegime,
+        new_tax_regime: updates.newTaxRegime || null,
+        company_group: updates.group || null,
+        classification: updates.classification || null,
+        municipality: updates.municipality || null,
+        situation: updates.situation || null,
+        honorary_value: updates.honoraryValue || null,
+        company_sector: updates.companySector || null,
+        segment: updates.segment || null,
+        fiscal_responsible: updates.sectorResponsibles?.fiscal || null,
+        pessoal_responsible: updates.sectorResponsibles?.pessoal || null,
+        contabil_responsible: updates.sectorResponsibles?.contabil || null,
+        financeiro_responsible: updates.sectorResponsibles?.financeiro || null,
+        alerts: updates.alerts || null,
+        updated_at: new Date().toISOString()
+      };
+
       const { error } = await supabase
         .from('companies')
-        .update({
-          name: updates.name,
-          tax_id: updates.taxId,
-          cpf: updates.cpf,
-          complexity_level: updates.complexityLevel,
-          client_class: updates.clientClass,
-          tax_regime: updates.taxRegime,
-          new_tax_regime: updates.newTaxRegime,
-          company_group: updates.group,
-          classification: updates.classification,
-          municipality: updates.municipality,
-          situation: updates.situation,
-          honorary_value: updates.honoraryValue,
-          company_sector: updates.companySector,
-          segment: updates.segment,
-          fiscal_responsible: updates.sectorResponsibles?.fiscal,
-          pessoal_responsible: updates.sectorResponsibles?.pessoal,
-          contabil_responsible: updates.sectorResponsibles?.contabil,
-          financeiro_responsible: updates.sectorResponsibles?.financeiro,
-          alerts: updates.alerts
-        })
+        .update(updateData)
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating company:', error);
+        throw error;
+      }
 
+      console.log('Company updated successfully');
       await fetchCompanies(); // Refresh the list
     } catch (err) {
+      console.error('Error in updateCompany:', err);
       setError(err instanceof Error ? err.message : 'Erro ao atualizar empresa');
       throw err;
     }
@@ -126,15 +160,22 @@ export const useSupabaseCompanies = () => {
 
   const deleteCompany = async (id: string) => {
     try {
+      console.log('Deleting company:', id);
+      
       const { error } = await supabase
         .from('companies')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting company:', error);
+        throw error;
+      }
 
+      console.log('Company deleted successfully');
       await fetchCompanies(); // Refresh the list
     } catch (err) {
+      console.error('Error in deleteCompany:', err);
       setError(err instanceof Error ? err.message : 'Erro ao deletar empresa');
       throw err;
     }
