@@ -60,6 +60,9 @@ export type NewTaxRegime =
 
 export type CompanySituation = 'SEM MOVIMENTO' | 'COM MOVIMENTO';
 
+// Novo tipo para status de inadimplência
+export type DelinquencyStatus = 'inadimplente' | 'sem_debitos';
+
 export type CompanySector = 
   | 'COMÉRCIO'
   | 'INDÚSTRIA'
@@ -137,6 +140,18 @@ export interface SectorResponsibles {
   financeiro?: string;
 }
 
+// Novo tipo para histórico de inadimplência
+export interface DelinquencyHistory {
+  id: string;
+  companyId: string;
+  status: DelinquencyStatus;
+  startDate: string;
+  endDate?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Company {
   id: string;
   name: string;
@@ -158,4 +173,9 @@ export interface Company {
   honoraryValue?: number;
   companySector?: CompanySector;
   alerts?: string[]; // Lista de problemas/alertas associados à empresa
+  
+  // Campos de inadimplência
+  delinquencyStatus?: DelinquencyStatus;
+  delinquencyStartDate?: string;
+  delinquencyEndDate?: string;
 }

@@ -2,13 +2,13 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCompanies } from '../../contexts/CompanyContext';
-import { Company } from '../../types/company';
+import { Company, DelinquencyStatus } from '../../types/company';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit2, Save, X, Trash2 } from 'lucide-react';
+import { Edit2, Save, X, Trash2, Calendar } from 'lucide-react';
 
 interface CompanyTableProps {
   companies: Company[];
@@ -65,6 +65,25 @@ export const CompanyTable = ({ companies, onDelete }: CompanyTableProps) => {
     }
   };
 
+  const getDelinquencyColor = (status?: DelinquencyStatus) => {
+    switch (status) {
+      case 'inadimplente': return 'bg-red-100 text-red-800';
+      case 'sem_debitos': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getDelinquencyDuration = (company: Company) => {
+    if (company.delinquencyStatus === 'inadimplente' && company.delinquencyStartDate) {
+      const startDate = new Date(company.delinquencyStartDate);
+      const endDate = company.delinquencyEndDate ? new Date(company.delinquencyEndDate) : new Date();
+      const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return `${diffDays} dias`;
+    }
+    return '-';
+  };
+
   return (
     <div className="border rounded-lg">
       <Table>
@@ -75,6 +94,8 @@ export const CompanyTable = ({ companies, onDelete }: CompanyTableProps) => {
             <TableHead>Segmento</TableHead>
             <TableHead>Responsável Fiscal</TableHead>
             <TableHead>Regime Tributário</TableHead>
+            <TableHead>Status Inadimplência</TableHead>
+            <TableHead>Duração Inadimplência</TableHead>
             {canEdit && <TableHead>Complexidade</TableHead>}
             {canEdit && <TableHead>Classe</TableHead>}
             {canEdit && <TableHead className="text-right">Ações</TableHead>}
@@ -156,6 +177,59 @@ export const CompanyTable = ({ companies, onDelete }: CompanyTableProps) => {
                 ) : (
                   <Badge variant="secondary">{company.taxRegime}</Badge>
                 )}
+              </TableCell>
+
+              <TableCell>
+                {editingId === company.id ? (
+                  <div className="space-y-2">
+                    <Select
+                      value={editData.delinquencyStatus || 'sem_debitos'}
+                      onValueChange={(value: DelinquencyStatus) => {
+                        setEditData({ 
+                          ...editData, 
+                          delinquencyStatus: value,
+                          delinquencyStartDate: value === 'inadimplente' && !editData.delinquencyStartDate 
+                            ? new Date().toISOString() 
+                            : editData.delinquencyStartDate,
+                          delinquencyEndDate: value === 'sem_debitos' 
+                            ? new Date().toISOString() 
+                            : undefined
+                        });
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="sem_debitos">Sem Débitos</SelectItem>
+                        <SelectItem value="inadimplente">Inadimplente</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {editData.delinquencyStatus === 'inadimplente' && (
+                      <Input
+                        type="date"
+                        value={editData.delinquencyStartDate ? editData.delinquencyStartDate.split('T')[0] : ''}
+                        onChange={(e) => setEditData({ 
+                          ...editData, 
+                          delinquencyStartDate: e.target.value ? new Date(e.target.value).toISOString() : undefined
+                        })}
+                        placeholder="Data de início"
+                        className="w-full text-xs"
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <Badge className={getDelinquencyColor(company.delinquencyStatus)}>
+                    {company.delinquencyStatus === 'inadimplente' ? 'Inadimplente' : 'Sem Débitos'}
+                  </Badge>
+                )}
+              </TableCell>
+
+              <TableCell>
+                <div className="flex items-center space-x-1">
+                  <Calendar className="w-3 h-3 text-gray-400" />
+                  <span className="text-sm">{getDelinquencyDuration(company)}</span>
+                </div>
               </TableCell>
               
               {canEdit && (

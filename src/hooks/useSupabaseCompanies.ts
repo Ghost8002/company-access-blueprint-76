@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Company, ComplexityLevel, ClientClass, TaxRegime, NewTaxRegime, CompanyGroup, CompanyClassification, CompanyMunicipality, CompanySituation, CompanySector, CompanySegment } from '../types/company';
+import { Company, ComplexityLevel, ClientClass, TaxRegime, NewTaxRegime, CompanyGroup, CompanyClassification, CompanyMunicipality, CompanySituation, CompanySector, CompanySegment, DelinquencyStatus } from '../types/company';
 import type { Database } from '@/integrations/supabase/types';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -74,7 +74,11 @@ export const useSupabaseCompanies = () => {
           contabil: company.contabil_responsible || undefined,
           financeiro: company.financeiro_responsible || undefined
         },
-        alerts: company.alerts || []
+        alerts: company.alerts || [],
+        // Novos campos de inadimplência
+        delinquencyStatus: company.delinquency_status as DelinquencyStatus || 'sem_debitos',
+        delinquencyStartDate: company.delinquency_start_date || undefined,
+        delinquencyEndDate: company.delinquency_end_date || undefined
       }));
 
       setCompanies(mappedCompanies);
@@ -122,7 +126,11 @@ export const useSupabaseCompanies = () => {
         pessoal_responsible: newCompany.sectorResponsibles?.pessoal || null,
         contabil_responsible: newCompany.sectorResponsibles?.contabil || null,
         financeiro_responsible: newCompany.sectorResponsibles?.financeiro || null,
-        alerts: newCompany.alerts || null
+        alerts: newCompany.alerts || null,
+        // Novos campos de inadimplência
+        delinquency_status: newCompany.delinquencyStatus || 'sem_debitos',
+        delinquency_start_date: newCompany.delinquencyStartDate || null,
+        delinquency_end_date: newCompany.delinquencyEndDate || null
       };
 
       console.log('Insert data:', insertData);
@@ -183,6 +191,10 @@ export const useSupabaseCompanies = () => {
         contabil_responsible: updates.sectorResponsibles?.contabil || null,
         financeiro_responsible: updates.sectorResponsibles?.financeiro || null,
         alerts: updates.alerts || null,
+        // Novos campos de inadimplência
+        delinquency_status: updates.delinquencyStatus || null,
+        delinquency_start_date: updates.delinquencyStartDate || null,
+        delinquency_end_date: updates.delinquencyEndDate || null,
         updated_at: new Date().toISOString()
       };
 

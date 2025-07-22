@@ -13,6 +13,7 @@ import { MonthlyRevenueChart } from './charts/MonthlyRevenueChart';
 import { CompanyValueTable } from './CompanyValueTable';
 import { SectorSegmentAnalysisChart } from './charts/SectorSegmentAnalysisChart';
 import { AdvancedAnalyticsChart } from './charts/AdvancedAnalyticsChart';
+import { DelinquencyReports } from './DelinquencyReports';
 import { formatCurrency } from '../../utils/formatters';
 
 interface ExportData {
@@ -24,6 +25,7 @@ interface ExportData {
   'Regime Tributário': string;
   'Município': string;
   'Situação': string;
+  'Status Inadimplência': string;
 }
 
 export const FinancialReports = () => {
@@ -52,7 +54,8 @@ export const FinancialReports = () => {
       'Classificação': company.classification || 'Não informado',
       'Regime Tributário': company.newTaxRegime || company.taxRegime,
       'Município': company.municipality || 'Não informado',
-      'Situação': company.situation || 'Não informado'
+      'Situação': company.situation || 'Não informado',
+      'Status Inadimplência': company.delinquencyStatus === 'inadimplente' ? 'Inadimplente' : 'Sem Débitos'
     }));
 
     // Adicionar linha de totais
@@ -65,7 +68,8 @@ export const FinancialReports = () => {
       'Classificação': '-',
       'Regime Tributário': '-',
       'Município': '-',
-      'Situação': '-'
+      'Situação': '-',
+      'Status Inadimplência': '-'
     });
 
     const filename = selectedSectorForTable === 'all' ? 'relatorio-financeiro' : `relatorio-${selectedSectorForTable.toLowerCase()}`;
@@ -102,6 +106,7 @@ export const FinancialReports = () => {
               <TabsTrigger value="overview" className="macos-tab">Visão Geral</TabsTrigger>
               <TabsTrigger value="rankings" className="macos-tab">Rankings</TabsTrigger>
               <TabsTrigger value="table" className="macos-tab">Tabela Detalhada</TabsTrigger>
+              <TabsTrigger value="delinquency" className="macos-tab">Inadimplência</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
@@ -315,6 +320,12 @@ export const FinancialReports = () => {
                 
                 {/* Tabela filtrada */}
                 <CompanyValueTable companies={filteredCompaniesForTable} />
+              </MacOSFade>
+            </TabsContent>
+
+            <TabsContent value="delinquency" className="space-y-6">
+              <MacOSFade delay={400}>
+                <DelinquencyReports />
               </MacOSFade>
             </TabsContent>
           </Tabs>

@@ -25,6 +25,9 @@ export type Database = {
           contabil_responsible: string | null
           cpf: string | null
           created_at: string
+          delinquency_end_date: string | null
+          delinquency_start_date: string | null
+          delinquency_status: string | null
           financeiro_responsible: string | null
           fiscal_responsible: string | null
           honorary_value: number | null
@@ -49,6 +52,9 @@ export type Database = {
           contabil_responsible?: string | null
           cpf?: string | null
           created_at?: string
+          delinquency_end_date?: string | null
+          delinquency_start_date?: string | null
+          delinquency_status?: string | null
           financeiro_responsible?: string | null
           fiscal_responsible?: string | null
           honorary_value?: number | null
@@ -73,6 +79,9 @@ export type Database = {
           contabil_responsible?: string | null
           cpf?: string | null
           created_at?: string
+          delinquency_end_date?: string | null
+          delinquency_start_date?: string | null
+          delinquency_status?: string | null
           financeiro_responsible?: string | null
           fiscal_responsible?: string | null
           honorary_value?: number | null
@@ -88,6 +97,47 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      delinquency_history: {
+        Row: {
+          company_id: string
+          created_at: string
+          end_date: string | null
+          id: string
+          notes: string | null
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          start_date?: string
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delinquency_history_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
