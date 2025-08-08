@@ -98,6 +98,48 @@ export type Database = {
         }
         Relationships: []
       }
+      company_groups: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      company_segments: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       delinquency_history: {
         Row: {
           company_id: string
@@ -139,6 +181,42 @@ export type Database = {
           },
         ]
       }
+      monthly_financial_reports: {
+        Row: {
+          created_at: string
+          delinquent_companies: number
+          id: string
+          month: number
+          revenue_without_delinquents: number
+          total_companies: number
+          total_revenue: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          delinquent_companies?: number
+          id?: string
+          month: number
+          revenue_without_delinquents?: number
+          total_companies?: number
+          total_revenue?: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          delinquent_companies?: number
+          id?: string
+          month?: number
+          revenue_without_delinquents?: number
+          total_companies?: number
+          total_revenue?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -171,9 +249,42 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      group_ranking: {
+        Row: {
+          avg_honorary: number | null
+          company_count: number | null
+          company_group: string | null
+          delinquent_count: number | null
+          total_honorary: number | null
+        }
+        Relationships: []
+      }
+      segment_ranking: {
+        Row: {
+          avg_honorary: number | null
+          company_count: number | null
+          delinquent_count: number | null
+          segment: string | null
+          total_honorary: number | null
+        }
+        Relationships: []
+      }
+      tax_regime_ranking: {
+        Row: {
+          avg_honorary: number | null
+          company_count: number | null
+          delinquent_count: number | null
+          tax_regime: string | null
+          total_honorary: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      calculate_delinquency_days: {
+        Args: { company_id: string }
+        Returns: number
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
