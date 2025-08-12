@@ -20,24 +20,7 @@ export const useSupabaseCompanies = () => {
       setLoading(true);
       console.log('Fetching companies from Supabase...');
       
-      // Check if user is authenticated (local or Supabase)
-      if (!isAuthenticated) {
-        console.log('User not authenticated, skipping fetch');
-        setCompanies([]);
-        setError(null);
-        return;
-      }
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      console.log('Current user:', user?.id ? 'Authenticated' : 'Not authenticated');
-      
-      // If no Supabase user but we're authenticated locally, return empty array for now
-      if (!user) {
-        console.log('No Supabase user found, but locally authenticated - returning empty companies list');
-        setCompanies([]);
-        setError(null);
-        return;
-      }
+      console.log('Fetching companies without authentication requirement...');
       
       const { data, error } = await supabase
         .from('companies')
@@ -95,18 +78,6 @@ export const useSupabaseCompanies = () => {
     try {
       console.log('Adding new company:', newCompany.name);
       
-      // Check if user is authenticated (local or Supabase)
-      if (!isAuthenticated) {
-        throw new Error('Usuário não autenticado');
-      }
-      
-      // Check for Supabase authentication
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.log('No Supabase user - this operation requires Supabase authentication');
-        throw new Error('Esta operação requer autenticação via Supabase. Por favor, faça login com email/senha.');
-      }
-      
       const insertData: CompanyInsert = {
         name: newCompany.name,
         tax_id: newCompany.taxId || null,
@@ -159,18 +130,6 @@ export const useSupabaseCompanies = () => {
     try {
       console.log('Updating company:', id, updates);
       
-      // Check if user is authenticated (local or Supabase)
-      if (!isAuthenticated) {
-        throw new Error('Usuário não autenticado');
-      }
-      
-      // Check for Supabase authentication
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.log('No Supabase user - this operation requires Supabase authentication');
-        throw new Error('Esta operação requer autenticação via Supabase. Por favor, faça login com email/senha.');
-      }
-      
       const updateData: CompanyUpdate = {
         name: updates.name,
         tax_id: updates.taxId || null,
@@ -221,18 +180,6 @@ export const useSupabaseCompanies = () => {
     try {
       console.log('Deleting company:', id);
       
-      // Check if user is authenticated (local or Supabase)
-      if (!isAuthenticated) {
-        throw new Error('Usuário não autenticado');
-      }
-      
-      // Check for Supabase authentication
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.log('No Supabase user - this operation requires Supabase authentication');
-        throw new Error('Esta operação requer autenticação via Supabase. Por favor, faça login com email/senha.');
-      }
-      
       const { error } = await supabase
         .from('companies')
         .delete()
@@ -258,13 +205,8 @@ export const useSupabaseCompanies = () => {
   };
 
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchCompanies();
-    } else {
-      setCompanies([]);
-      setLoading(false);
-    }
-  }, [isAuthenticated]);
+    fetchCompanies();
+  }, []);
 
   return {
     companies,
