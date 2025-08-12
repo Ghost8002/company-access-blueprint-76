@@ -14,11 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      collaborators: {
+        Row: {
+          active: boolean | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          role: string | null
+          sector: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          role?: string | null
+          sector?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          role?: string | null
+          sector?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       companies: {
         Row: {
           alerts: string[] | null
           classification: string | null
           client_class: string | null
+          collaborator_ids: string[] | null
           company_group: string | null
           company_sector: string | null
           complexity_level: string | null
@@ -46,6 +80,7 @@ export type Database = {
           alerts?: string[] | null
           classification?: string | null
           client_class?: string | null
+          collaborator_ids?: string[] | null
           company_group?: string | null
           company_sector?: string | null
           complexity_level?: string | null
@@ -73,6 +108,7 @@ export type Database = {
           alerts?: string[] | null
           classification?: string | null
           client_class?: string | null
+          collaborator_ids?: string[] | null
           company_group?: string | null
           company_sector?: string | null
           complexity_level?: string | null
@@ -97,6 +133,42 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      company_collaborators: {
+        Row: {
+          collaborator_id: string
+          company_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          collaborator_id: string
+          company_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          collaborator_id?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_collaborators_collaborator_id_fkey"
+            columns: ["collaborator_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_collaborators_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       company_groups: {
         Row: {
@@ -219,31 +291,111 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string
           email: string
           id: string
+          is_active: boolean | null
+          last_login: string | null
           name: string
           role: string
           sector: string | null
           updated_at: string
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           email?: string
           id: string
+          is_active?: boolean | null
+          last_login?: string | null
           name?: string
           role?: string
           sector?: string | null
           updated_at?: string
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           email?: string
           id?: string
+          is_active?: boolean | null
+          last_login?: string | null
           name?: string
           role?: string
           sector?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      system_alerts: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          severity: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          severity?: string | null
+          title: string
+          type: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          severity?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_alerts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      system_settings: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          key: string
+          updated_at: string
+          value: Json | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string
+          value?: Json | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: Json | null
         }
         Relationships: []
       }
